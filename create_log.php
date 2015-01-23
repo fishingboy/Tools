@@ -2,6 +2,7 @@
     include ("common.php");
     include ("debug_tool.php");
     include_once('const.php');
+    include_once('lib/register_globals.php');
 
     $start = ($start) ? intval($start) : 1;
     $fmReplace = (isSet($fmReplace)) ? $fmReplace : 1;
