@@ -1,4 +1,7 @@
 <?
+    // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
+    include_once('lib/register_globals.php');
+
     function create_preg_replace_code($arg1, $arg2, $str)
     {
         $str  = addslashes($str);
@@ -97,9 +100,9 @@ HTML;
             $opt .= "<option value='$value' $selected>$value</option>";
         }
         $select = "<select id=fmFunc name=fmFunc>
-                      $opt        
+                      $opt
                    </select>";
-                   
+
     ?>
     function: <?= $select ?><br>
     pattern: <input class=Text type=text style='width:800px' name=arg1 value='<?= htmlspecialchars($arg1, ENT_QUOTES) ?>'><br>

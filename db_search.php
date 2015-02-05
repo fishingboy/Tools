@@ -1,9 +1,11 @@
 <?
     include ("lib/common.php");
-    
+    // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
+    include_once('lib/register_globals.php');
+
     $dbName = ($dbName) ? $dbName : "lms";
     $DB = $dbName;
-    
+
     if ($insertSql) $checkInsert = "checked";
     if ($key == "")    $allField = "1";
     if ($checkVal)
@@ -25,7 +27,7 @@
     body {font-size:16px; color:#666}
     .tbl   {color: red}
     .field {color: blue}
-    .hint  {color: green}    
+    .hint  {color: green}
 </style>
 <script>
     function changeDisabled(v)
@@ -40,7 +42,7 @@
         資料庫名稱<input type=text name=dbName value='<?= $dbName ?>'>
         欄位名稱<input type=text name=key value='<?= $key ?>' style='width:300px;'> <span class=hint>(,號隔開篩選多個欄位)</span><br>
         <input type=checkbox name=insertSql <?= $checkInsert ?> onclick='changeDisabled(!this.checked)'>顯示新增語法
-        
+
         <input type=checkbox name=checkVal <?= $checked ?> onclick='changeDisabled(!this.checked)'>篩選欄位值
         <input type=checkbox name=allMatch <?= $checkedMatch ?>>完整比對
         <input type=checkbox name=onlyCheckStr <?= $checkedStr ?>>只對字串進行比對
@@ -49,16 +51,16 @@
     </form>
     <div style='border:1px solid #ccc'></div>
 <?
-    /* 
+    /*
             搜尋資料庫內所有資料表、資料欄位
     */
-          
-    $key = explode(",", $key);          
+
+    $key = explode(",", $key);
     for($j=0; $j<count($key); $j++) $key[$j] = trim($key[$j]);
-    
-    //search table        
+
+    //search table
     $result = mysql_list_tables($dbName);
-    
+
     $totalCount = $tblCount = $fieldCount = $VCount = 0;
     $tblResult  = $fieldResult = $VResult = "";
     while ($row = mysql_fetch_array($result))
@@ -68,14 +70,14 @@
         {
             for($j=0; $j<count($key); $j++) if (stristr($tblName, $key[$j])) break;
         }
-        
+
         if ($j < count($key) || $allField)
         {
             $tblCount++; $totalCount++;
             $tblResult .= "$tblCount : <span class=tbl>$tblName</span> <br>";
         }
 
-        //search field    
+        //search field
         $fields = mysql_list_fields($dbName, $tblName);
         $i = 0; $insertTag = "";
         while($field = @mysql_field_name($fields, $i++))
@@ -88,12 +90,12 @@
                     if ($field == $key[$j]) break;
                 }
             }
-            
+
             if ($field != "id")
             {
                 $insertTag .= ($insertTag) ? ", $field=''" : "$field=''";
             }
-            
+
             $tmpResult = ""; $find = 0;
             if ($j<count($key) || $allField)
             {
@@ -101,7 +103,7 @@
                 $field_type = @mysql_field_type($fields, $i-1);
                 $field_type = ($field_type) ? "($field_type)" : "";
                 $tmpResult .= "<span class=tbl>$tblName</span>.<span class=field>$field</span> $field_type<br>";
-                
+
                 //search value
                 if ($checkVal)
                 {
@@ -131,7 +133,7 @@
             }
             if ($tmpResult && (!$checkVal || $find == 1))
             {
-                $fieldCount++;                
+                $fieldCount++;
                 $fieldResult .= "$fieldCount. $tmpResult";
             }
         }
@@ -139,16 +141,16 @@
         // $fields = "";
         //if ($f) $fieldResult .= "<br>";
     }
-    
+
     echo "
             資料表：<br>
             $tblResult
             <span class=hint>共 $tblCount 筆</span><br><br>
-            
+
             資料欄位：<br>
             $fieldResult
-            <span class=hint>共 $fieldCount 筆<span><br><br> 
-            
+            <span class=hint>共 $fieldCount 筆<span><br><br>
+
             <span class=hint>一共找到 $totalCount 筆資料</span><br>
     ";
 ?>

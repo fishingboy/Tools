@@ -1,6 +1,9 @@
 <?
+    // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
+    include_once('lib/register_globals.php');
+
     function get_php_var($file)
-    {   
+    {
         if (file_exists($file))
         {
             include ($file);
@@ -34,14 +37,14 @@ function changeDoamin()
             <option value='www_lms'  {$selected[www_lms]}>lms</option>
             <option value='www_lms2' {$selected[www_lms2]}>lms2</option>
           </select>";
-    
+
     $arr_left  = get_php_var("D:/TMS/$domain_path/sys/res/lang/zh-tw/locale.php");
     $arr_right = get_php_var("D:/TMS/$domain_path/sys/res/lang/en-us/locale.php");
     $arr_tmp = $arr_right;
-    
+
     $arr_total = array_merge($arr_left, $arr_right);
     $total_count = count($arr_total);
-    
+
     $html = $rows = "";
     $left_count = 0;
     foreach ($arr_left as $key => $value)
@@ -67,7 +70,7 @@ function changeDoamin()
             $rows
           </table>";
 
-    
+
     $rows = "";
     $right_count = 0;
     foreach ($arr_tmp as $key => $value)
@@ -87,7 +90,7 @@ function changeDoamin()
           </table>";
 
 
-    
+
     $rows = $rows2 = "";
     $unfinish_count = $finish_count = 0;
     foreach ($arr_left as $key => $value)
@@ -114,8 +117,8 @@ function changeDoamin()
                   </tr>";
         }
     }
-    
-    
+
+
     $html .=
          "<table id=table_unfinish style='width:100%; margin-bottom:30px;'>
             <tr style='background:#cfc'><th colspan=2>尚未翻譯($unfinish_count)</th></tr>
@@ -128,8 +131,8 @@ function changeDoamin()
             <tr style='background:#cfc'><th colspan=2>已完成翻譯($finish_count)</th></tr>
             $rows2
           </table>";
-          
-          
+
+
     /* 顯示 */
     echo "<table style='width:100%; margin-bottom:30px;'>
             <tr style='background:#cfc'><th colspan=2>統計($total_count)</th></tr>

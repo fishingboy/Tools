@@ -2,6 +2,8 @@
     include ("common.php");
     include ("debug_tool.php");
     include_once('const.php');
+
+    // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
     include_once('lib/register_globals.php');
 
     $start = ($start) ? intval($start) : 1;

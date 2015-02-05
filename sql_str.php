@@ -1,12 +1,14 @@
 <?
     include ("common.php");
+    // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
+    include_once('lib/register_globals.php');
 
     $_DB = ($_DB) ? $_DB : "test";
     $start = ($fmStart) ? $fmStart : 1;
     $end   = ($fmEnd)   ? $fmEnd   : 100;
     $rnd_start = ($fmRndStart) ? $fmRndStart : 1;
     $rnd_end = ($fmRndEnd) ? $fmRndEnd : 100000;
-    
+
     if ($fmSubmit)
     {
         include ("lib/timer.php");
@@ -17,7 +19,7 @@
         $query_time->stop();
         $t = $end - $start + 1;
         echo "$_DB 執行SQL " . $query_time->spent() . ": $start - $end ($t)<br><br>";
-        echo nl2br($str) . "<hr><br>";        
+        echo nl2br($str) . "<hr><br>";
     }
 ?>
 <html>
@@ -72,11 +74,11 @@
 </form>
 </body>
 </html>
-<?  
+<?
     function queryStr($str, $start, $end, $rnd_start, $rnd_end)
     {
         global $_DB;
-        
+
         $start = ($start) ? $start : 1;
         $end = ($end) ? $end : 1000;
         $strList = "";

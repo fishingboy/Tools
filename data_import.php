@@ -1,6 +1,8 @@
 <?
     include ("common.php");
-    
+    // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
+    include_once('lib/register_globals.php');
+
     function strip_quote($str)
     {
         return ereg_replace ("^\"(.*)\"$", "\\1", $str);
@@ -13,7 +15,7 @@
 <title>資料匯入</title>
 <script>
 	function changeCharset(csv_name)
-	{		
+	{
 	    var charseteCtrl = document.getElementById("fmCharset");
 		var charset = charseteCtrl.options[charseteCtrl.selectedIndex].value;
 		window.location.href = "user_import.php?fmSubmit=yes&csv_name=" + csv_name + "&reSubmit=1&charset=" + charset;
@@ -30,7 +32,7 @@
 		$over_write_rows = 0;
 		$success_rows = 0;
         $cells = array();
-        
+
         $enc_charset = ($enc_charset) ? $enc_charset : "big-5";
         $html = "";
         while (!feof ($handle))
@@ -39,17 +41,17 @@
 			if (trim($buffer == "")) continue;
 			if ($enc_charset != "UTF-8")
 			{
-				$buffer = iconv($enc_charset, "UTF-8//IGNORE", $buffer);					
+				$buffer = iconv($enc_charset, "UTF-8//IGNORE", $buffer);
 			}
 			$total_rows++;
 			$csv_data = explode(",", $buffer);
 	    	$num = count($csv_data);
-            
+
             for ($i=0; $i<$num; $i++)
             {
                 $csv_data[$i] = strip_quote(trim($csv_data[$i]));
             }
-            
+
             if ($total_rows == 1)
             {
                 $tableName = $csv_data[0];
@@ -71,7 +73,7 @@
                 }
                 continue;
             }
-            
+
             $rows = "";
             for ($i=0; $i<$num; $i++)
             {
@@ -85,7 +87,7 @@
 	    }
 
         $total_rows -= 2;
-        
+
 	    fclose ($handle);
         echo "<h4>SETP.3 匯入完成</h4>";
         echo "$total_rows 筆記錄匯入完成。";
@@ -119,7 +121,7 @@
 		$over_write_rows = 0;
 		$success_rows = 0;
         $cells = array();
-        
+
         $enc_charset = ($enc_charset) ? $enc_charset : "big-5";
         $html = "";
         while (!feof ($handle))
@@ -128,17 +130,17 @@
 			if (trim($buffer == "")) continue;
 			if ($enc_charset != "UTF-8")
 			{
-				$buffer = iconv($enc_charset, "UTF-8//IGNORE", $buffer);					
+				$buffer = iconv($enc_charset, "UTF-8//IGNORE", $buffer);
 			}
 			$total_rows++;
 			$csv_data = explode(",", $buffer);
 	    	$num = count($csv_data);
-            
+
             for ($i=0; $i<$num; $i++)
             {
                 $csv_data[$i] = strip_quote(trim($csv_data[$i]));
             }
-            
+
             if ($total_rows == 1)
             {
                 $tableName = $csv_data[0];
@@ -156,7 +158,7 @@
                 }
                 continue;
             }
-            
+
             $rows = "";
             for ($i=0; $i<$num; $i++)
             {
@@ -170,7 +172,7 @@
 	    }
 
 	    fclose ($handle);
-        
+
         $selected = array();
         $selected[$enc_charset] = "selected";
 ?>
@@ -203,14 +205,14 @@
     $db_list = mysql_list_dbs();
     $i = 0; $db_opt = $db_opt2 = "";
     $cnt = mysql_num_rows($db_list);
-    while ($i < $cnt) 
+    while ($i < $cnt)
     {
         $db_name = mysql_db_name($db_list, $i);
         $selected = ($db_name == "lms") ? "selected" : "";
         $db_opt .=  "<option value='$db_name' $selected>$db_name</option>\n";
         $i++;
     }
-    
+
 ?>
 <h4>SETP.1 匯入資料</h4>
 <form method=post enctype='multipart/form-data'>
@@ -218,7 +220,7 @@
     <div style='border:1px solid #ccc; padding:3px; margin:3px; width:300px'>
         資料庫: <select name=_DB><?= $db_opt ?></select><br>
         <input type='file' id='csv_file' name='csv_file'>
-        
+
     </div>
     <input type=checkbox name=clear_table value='1'> 清空資料表
     <input type=submit value='匯入'>

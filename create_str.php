@@ -1,4 +1,7 @@
 <?
+    // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
+    include_once('lib/register_globals.php');
+
     $start = ($fmStart) ? $fmStart : 1;
     $end   = ($fmEnd)   ? $fmEnd   : 100;
 ?>
@@ -23,7 +26,7 @@
 </form>
 </body>
 </html>
-<?  
+<?
     function createStr($str, $start, $end)
     {
         $start = ($start) ? $start : 1;

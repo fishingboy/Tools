@@ -1,16 +1,18 @@
 <?
     include ("common.php");
     include ("lib/timer.php");
+    // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
+    include_once('lib/register_globals.php');
 
     $fmRepeat = ($fmRepeat) ? intval($fmRepeat) : 1000;
-    
-    
+
+
     if ($fmSubmit)
     {
         // URL1
         $t1 = new timer();
         $t2 = new timer();
-        
+
         $t1->start();
         for ($i=1; $i<=$fmRepeat; $i++)
         {
@@ -29,7 +31,7 @@
             }
             $t2->stop();
             echo $t2->spent() . "<br>";
-        
+
             $percent = (($t2->TimeSpent - $t1->TimeSpent) / $t1->TimeSpent) * 100;
             echo "URL1 : URL2 = " . number_format($percent, 4) . "%<br>";
         }
