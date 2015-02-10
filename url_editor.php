@@ -56,10 +56,10 @@
                     $key   = htmlspecialchars($param_obj['key'], ENT_QUOTES);
                     $value = htmlspecialchars(urldecode($param_obj['value']), ENT_QUOTES);
                     $html .= "<div id='param_{$i}' class='param'>
+                                <input type='button' value='-' onclick='\$page.remove_param($i)'>
                                 <textarea id='fm_key_{$i}' name='fm_key[$i]' class='key' type='text'>$key</textarea>
                                 =>
                                 <textarea id='fm_value_{$i}' name='fm_value[$i]' type='text' class='value'>$value</textarea>
-                                <input type='button' value='-' onclick='\$page.remove_param($i)'>
                               </div>";
                 }
             }
@@ -100,6 +100,7 @@
 #fm_url      {width:100%; height:180px}
 #fm_host     {width:98%; height:25px;}
 #fm_url_make {width:200px; background: #EFE;}
+#fm_url_link {width:200px; background: #EFE;}
 .param       {padding:2px;}
 .key         {width:160px; height:25px;}
 .value       {width:85%; height:25px;}
@@ -155,6 +156,15 @@ $(function()
     {
         params_count : <?php echo count($url_object['get'])?>
     });
+
+    <?php
+        // 直接連結網頁
+        $tabid = (isset($_POST['fm_tabid'])) ? $_POST['fm_tabid'] : md5(time());
+        if ($_POST['fm_action'] == 'link')
+        {
+            echo "window.open('{$url}', '_url_editor_{$tabid}');";
+        }
+    ?>
 });
 </script>
 </head>
@@ -164,6 +174,7 @@ $(function()
 </pre>
 <form id='form_editor' method='post'>
     <input id='fm_action' name='fm_action' type='hidden' value=''>
+    <input id='fm_tabid' name='fm_tabid' type='hidden' value='<?php echo $tabid ?>'>
     網址:
     <textarea id='fm_url' name='fm_url'><?= $url ?></textarea>
     <input name='fm_url_parse' type='button' value='網址解析' onclick='$page.doit("parse")'>
@@ -171,7 +182,8 @@ $(function()
     <div id='url_parser'><?php echo Url_editor::make_form($url_object); ?></div>
     <div>
         <input id='fm_add_param' type='button' value='+' onclick='$page.add_param()'>
-        <input id='fm_url_make' name='fm_url_make' type='submit' value='重新產生網址' onclick='$page.doit("build")'>
+        <input id='fm_url_make' name='fm_url_make' type='button' value='重新產生網址' onclick='$page.doit("build")'>
+        <input id='fm_url_link' name='fm_url_link' type='button' value='連結新網址' onclick='$page.doit("link")'>
     </div>
 </form>
 </body>
