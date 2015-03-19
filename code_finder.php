@@ -6,8 +6,11 @@ register_shutdown_function("code_finder::init");
 class code_finder
 {
     public static $_instance;
-    public $keyword;
     public $files;
+
+    public $keyword;
+    public $upper_case;
+
     public $find_list;
     public $find_content;
 
@@ -29,9 +32,9 @@ class code_finder
         $this->get_keyword();
         if ($this->keyword)
         {
+            $this->get_upper_case();
             $this->find_keyword($this->keyword);
         }
-
         $this->output();
     }
 
@@ -41,6 +44,12 @@ class code_finder
         $keyword = (isset($_GET['__keyword'])) ? $_GET['__keyword'] : "";
         $keyword = (isset($_POST['__keyword'])) ? $_POST['__keyword'] : $keyword;
         $this->keyword = $keyword;
+    }
+
+    // 取得是否區分大小寫
+    public function get_upper_case()
+    {
+        $this->upper_case = $_POST['__upper_case'];
     }
 
     // 取得 include 檔案
@@ -56,13 +65,21 @@ class code_finder
         $this->find_content = $this->find_files_content($keyword);
     }
 
+    public function keyword_cmp($haystack, $needle)
+    {
+        if ($this->upper_case)
+            return preg_match("/$needle/i", $haystack);
+        else
+            return strpos($haystack, $needle);
+    }
+
     // 搜尋檔案名稱
     public function find_file_list($keyword)
     {
         $result = array();
         foreach ($this->files as $file)
         {
-            if (strpos($file, $keyword) !== FALSE)
+            if ($this->keyword_cmp($file, $keyword))
             {
                 $result[] = $file;
             }
@@ -81,7 +98,7 @@ class code_finder
             while ($content = fgets($fp))
             {
                 $line++;
-                if (strpos($content, $keyword) !== FALSE)
+                if ($this->keyword_cmp($content, $keyword))
                 {
                     $result[$file][$line] = $content;
                 }
@@ -132,22 +149,27 @@ class code_finder
         $get_url = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 
         // 找出 post 欄位
+        $hidden_black_list = array('__keyword', '__upper_case');
         $post_hidden = "";
         if (isset($_POST))
         {
             foreach ($_POST as $key => $value)
             {
+                if (in_array($key, $hidden_black_list)) continue;
+
                 $value = htmlspecialchars($value, ENT_QUOTES);
                 $post_hidden .= "<input type='hidden' name='$key' value='$value'>";
             }
         }
 
         $keyword = htmlspecialchars($this->keyword, ENT_QUOTES);
+        $checked = ($this->upper_case) ? "checked" : "";
         $html = <<<HTML
         <div style='background:#EFE; padding:5px;'>
             <form action='{$get_url}' method='post'>
                 $post_hidden
                 搜尋: <input type='text' name='__keyword' value='{$keyword}'>
+                <input type='checkbox' name='__upper_case' value='1' {$checked}> 不分大小寫
                 <input type='submit' value='查詢'>
             </form>
         </div>
