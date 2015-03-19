@@ -112,6 +112,7 @@ class code_finder
     // 畫面輸出
     public function output($value='')
     {
+        echo "<hr>";
         echo $this->output_form();
         if ($this->keyword)
         {
