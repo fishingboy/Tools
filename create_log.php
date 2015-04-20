@@ -119,6 +119,9 @@
         case "lms_update_log":
             $value = lms_update_log($str);
             break;
+        case "open_browser":
+            $value = open_browser($str);
+            break;
     }
 ?>
 <html>
@@ -221,6 +224,7 @@
     <input class='button'        type='button' id='lang_pms2lms' name='lang_pms2lms'     value='lang_pms2lms' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='lms_update_log' name='lms_update_log'     value='功能更新列表' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='css_converter' name='css_converter'     value='css顏色轉小寫' onclick='btnSubmit(this)'>
+    <input class='button'        type='button' id='open_browser' name='open_browser'     value='開啟網址' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='fmCopy' name='fmCopy' value='   ↑   ' onclick='result_to_input()'>
     <textarea id=newStr name=newStr style='width:100%; height:350px' onfocus='this.select()'><? if ($str) echo htmlspecialchars($value, ENT_QUOTES); ?></textarea>
 </form>
@@ -489,4 +493,25 @@
                 return $obj;
         }
     }
+
+    /**
+     * 開啟瀏灠器
+     * @param  string $str 網址(一行一個)
+     * @return void
+     */
+    function open_browser($str='')
+    {
+        $tmp = explode("\n", $str);
+        $html = "<script>";
+        foreach ($tmp as $url)
+        {
+            $url = trim($url);
+            $html .= "window.open('{$url}');\n";
+        }
+        $html .= "alert('已開啟網址!!!')";
+        $html .= "</script>";
+
+        echo $html;
+    }
+
 ?>
