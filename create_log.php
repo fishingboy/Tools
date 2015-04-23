@@ -122,6 +122,9 @@
         case "open_browser":
             $value = open_browser($str);
             break;
+        case "curl_test":
+            $value = curl_test($str);
+            break;
     }
 ?>
 <html>
@@ -225,6 +228,7 @@
     <input class='button'        type='button' id='lms_update_log' name='lms_update_log'     value='功能更新列表' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='css_converter' name='css_converter'     value='css顏色轉小寫' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='open_browser' name='open_browser'     value='開啟網址' onclick='btnSubmit(this)'>
+    <input class='button'        type='button' id='curl_test' name='curl_test'     value=' CURL 測試網址' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='fmCopy' name='fmCopy' value='   ↑   ' onclick='result_to_input()'>
     <textarea id=newStr name=newStr style='width:100%; height:350px' onfocus='this.select()'><? if ($str) echo htmlspecialchars($value, ENT_QUOTES); ?></textarea>
 </form>
@@ -514,4 +518,53 @@
         echo $html;
     }
 
-?>
+    /**
+     * 開啟瀏灠器
+     * @param  string $str 網址(一行一個)
+     * @return void
+     */
+    function curl_test($str='')
+    {
+        $tmp = explode("\n", $str);
+
+        foreach ($tmp as $url)
+        {
+            $url = trim($url);
+            $response_code = curl_info($url);
+            $msg = ($response_code == 200) ?  'ok' : "HTTP ERROR: " . $response_code;
+            $value .= "{$url} ..................{$msg}\n";
+        }
+        return $value;
+    }
+
+    /**
+     * 回傳 HTTP RESPONSE CODE
+     * @param  string $url 網址
+     * @return integer     HTTP RESPONSE CODE
+     */
+    function curl_info($url)
+    {
+        $timeout = 10;
+        $curl = curl_init($url);
+        if (substr($url, 0, 5) == "https")
+        {
+            @ curl_setopt($curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
+            @ curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 1);
+            @ curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        }
+        else
+        {
+            @ curl_setopt($curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP);
+        }
+        @ curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+        @ curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        @ curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+
+        $data = curl_exec($curl);
+
+        $response_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        return $response_code;
+    }
+
+/* End of file create_log.php */
+/* Location: create_log.php */
