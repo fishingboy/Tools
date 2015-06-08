@@ -189,7 +189,7 @@
 <pre>
 ==  文字處理器  ==
 </pre>
-<form id=form1 action='create_log.php' method=POST>
+<form id=form1 action='text_editor.php' method=POST>
     <input id=action name=action type=hidden>
     開始行號: <input type=text name=start value='<?php echo $start ?>'>
     <textarea id=str name=str style='width:100%; height:200px' onfocus='this.select()' onkeypress='getKey(event)'><?php echo $str ?></textarea>
@@ -566,5 +566,5 @@
         return $response_code;
     }
 
-/* End of file create_log.php */
-/* Location: create_log.php */
+/* End of file text_editor.php */
+/* Location: text_editor.php */
