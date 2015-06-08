@@ -1,4 +1,12 @@
 <?php
+    // 防呆處理
+    if ( ! file_exists('const.php'))
+    {
+        // TODO:跳到設定介面
+        echo "TODO:跳到設定介面";
+        exit;
+    }
+
     include_once('const.php');
 
     $program = ($_GET['program']) ? $_GET['program'] : 'create_log';
