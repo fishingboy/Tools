@@ -2,6 +2,7 @@
 /* 系統 */
 define('ROOT_PATH',       'D:/www/www_tools');
 define('HTTP_HOST',       'tools');
+define('ENV',             'local');
 
 // 計算網址的根目錄
 $tmp = explode("/", $_SERVER['PHP_SELF']);

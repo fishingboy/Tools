@@ -38,34 +38,54 @@
         }
     }
     echo "</ul>";
-    
+
     echo "<div style='border-bottom:1px dotted #333; margin:10px 0;'></div>";
 ?>
-<pre>
-/* 開發計畫: 鍵盤選取執行 */
-</pre>
 </body>
 </html>
 <?
     function ignore_file($file)
     {
         $ignore_list = array(
-                             "index.php", 
-                             "index_menu.php", 
-                             "index_main.php", 
-                             "common.php", 
-                             "define.php", 
+                             "index.php",
+                             "index_menu.php",
+                             "index_main.php",
+                             "common.php",
+                             "define.php",
+                             "code_finder.php",
                              "firephp.php",
                              "http_clear_log.php",
                              "define.sample.php",
-                             "phpinfo.php",
                              "view.php",
                              "const.php",
                              "const_sample.php",
                              );
+
+        $local_list = array(
+                             "phpinfo.php",
+                             "bigdump.php",
+                             "sql_str.php",
+                             "phpunit_tester.php",
+                             "locale_diff.php",
+                             "get_path_filelist.php",
+                             "db_search.php",
+                             "db_schema.php",
+                             "db_compare.php",
+                             "data_import.php",
+                             );
+        // 忽略清單
         foreach ($ignore_list as $value)
         {
             if ($file == $value) return true;
+        }
+
+        // 本機工具清單(線上環境隱藏)
+        if (ENV == 'ONLINE')
+        {
+            foreach ($local_list as $value)
+            {
+                if ($file == $value) return true;
+            }
         }
         return false;
     }
