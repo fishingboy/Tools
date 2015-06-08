@@ -1,5 +1,6 @@
 <?
     ini_set("display_errors", "Off");
+    include_once('const.php');
 ?>
 <html>
 <head>
@@ -39,7 +40,7 @@
     }
     echo "</ul>";
 
-    echo "<div style='border-bottom:1px dotted #333; margin:10px 0;'></div>";
+    // echo "<div style='border-bottom:1px dotted #333; margin:10px 0;'></div>";
 ?>
 </body>
 </html>
