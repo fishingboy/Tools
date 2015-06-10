@@ -20,6 +20,9 @@
             }
             $value = rtrim(create_line($value));
             break;
+        case "sign_match":
+            $value = parser::parse($str);
+            break;
         case "stripslashes":
             $value = stripslashes($str);
             break;
@@ -190,6 +193,7 @@
     <input class='button'        type='button' id='strip_tags' name='strip_tags' value='strip_tags' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='stripline' name='stripline' value='去換行符號' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='strip_nl' name='strip_nl' value='換行轉空白' onclick='btnSubmit(this)'>
+    <input class='button'        type='button' id='sign_match' name='sign_match' value='括號匹配' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='md5' name='md5' value='md5' onclick='btnSubmit(this)'>
     <input class='button group1' type='button' id='stripslashes' name='stripslashes' value='stripslashes' onclick='btnSubmit(this)'>
     <input class='button group1' type='button' id='addslashes' name='addslashes' value='addslashes' onclick='btnSubmit(this)'>
@@ -436,6 +440,57 @@
         $html .= "</script>";
 
         echo $html;
+    }
+
+    /**
+     * 括號匹配
+     * @author Leo.Kuo
+     */
+    class parser
+    {
+        public static function parse($str)
+        {
+            $output = "";
+            $flag = 0;
+            $depth = 0;
+            $depth = 0;
+            while ($str)
+            {
+                $str = trim($str);
+                $pos_left  = strpos($str, '(');
+                $pos_right = strpos($str, ')');
+
+                if ($pos_left === FALSE && $pos_right === FALSE)
+                {
+                    $output .= $str;
+                    break;
+                }
+
+                $flag = ($pos_left > $pos_right) ? '-' : '+';
+                if ($flag == '+' && $pos_left !== FALSE)
+                {
+                    $space_out = str_repeat(" ", $depth * 4);
+                    $space_in = str_repeat(" ", ($depth+1) * 4);
+                    $content = trim(substr($str, 0, $pos_left));
+                    if ($content) $output .= "{$space_out}$content\n";
+                    $output .= "{$space_out}(\n";
+                    $str = substr($str, $pos_left+1);
+                    $depth++;
+                }
+                else
+                {
+                    $depth--;
+                    $space_out = str_repeat(" ", $depth * 4);
+                    $space_in = str_repeat(" ", ($depth+1) * 4);
+                    $content = trim(substr($str, 0, $pos_right));
+
+                    if ($content) $output .= "{$space_in}$content\n";
+                    $output .= "{$space_out})\n";
+                    $str = substr($str, $pos_right+1);
+                }
+            }
+            return $output;
+        }
     }
 
     /**
