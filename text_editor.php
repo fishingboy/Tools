@@ -10,7 +10,7 @@
     $fmReplace = (isSet($fmReplace)) ? $fmReplace : 1;
     switch ($action)
     {
-        case "fmCreate":
+        case "fmAddLineNo":
             $value = cancel_line($str);
             if ($fmReplace) $value = replace_rule($value);
             if ($fmSort)
@@ -19,9 +19,6 @@
                 $value = sort_path($value, $distinct);
             }
             $value = rtrim(create_line($value));
-            break;
-        case "fmCreateLine":
-            $value = rtrim(create_line2($str));
             break;
         case "stripslashes":
             $value = stripslashes($str);
@@ -110,15 +107,6 @@
             }
             $value = addslashes($value);
             break;
-        case "lang_pms2lms":
-            $value = lang_pms2lms($str);
-            break;
-        case "css_converter":
-            $value = css_converter($str);
-            break;
-        case "lms_update_log":
-            $value = lms_update_log($str);
-            break;
         case "open_browser":
             $value = open_browser($str);
             break;
@@ -154,7 +142,7 @@
 			case 13:
                 if (e.ctrlKey)
                 {
-					var ctrl = $('fmCreate');
+					var ctrl = $('fmAddLineNo');
                     btnSubmit(ctrl);
                     e.returnValue = false;
                     e.cancelBubble = true;
@@ -174,6 +162,7 @@
     }
 </script>
 <style>
+    textarea {font-size:14px; font-family: "Yahei Consolas Hybrid"}
     input.button {font-size:15px; font-family: "Yahei Consolas Hybrid"; border: 1px solid #aaa; margin:2px;}
     input.group1 {background: #88F;}
     input.group2 {background: #8f8;}
@@ -181,7 +170,6 @@
     input.group4 {background: #CAC;}
     input.group5 {background: #CCA;}
     input.group6 {background: #ACC;}
-    textarea {font-size:14px; font-family: "Yahei Consolas Hybrid"}
 </style>
 </head>
 <body>
@@ -189,17 +177,16 @@
 <pre>
 ==  文字處理器  ==
 </pre>
-<form id=form1 action='create_log.php' method=POST>
+<form id=form1 action='text_editor.php' method=POST>
     <input id=action name=action type=hidden>
-    開始行號: <input type=text name=start value='<?php echo $start ?>'>
+    <!-- 開始行號: <input type=text name=start value='<?php echo $start ?>'> -->
     <textarea id=str name=str style='width:100%; height:200px' onfocus='this.select()' onkeypress='getKey(event)'><?php echo $str ?></textarea>
-    <input type=checkbox id=fmSort name=fmSort value='1' <?php echo ($fmSort) ? "checked" : ""?>>排序
-    <input type=checkbox id=fmReplace name=fmReplace value='1' <?php echo ($fmReplace) ? "checked" : ""?>>拿掉絕對路徑
-    <input type=checkbox id=fmClear name=fmClear value='1' <?php echo ($fmClear) ? "checked" : ""?>>清空說明
-    <input type=checkbox id=fmEngWord name=fmEngWord value='1' <?php echo ($fmEngWord) ? "checked" : ""?>>英文序號
+    <!-- <input type=checkbox id='fmSort' name='fmSort' value='1' <?php echo ($fmSort) ? "checked" : ""?>>排序 -->
+    <!-- <input type=checkbox id='fmReplace' name='fmReplace' value='1' <?php echo ($fmReplace) ? "checked" : ""?>>拿掉絕對路徑 -->
+    <!-- <input type=checkbox id='fmClear' name='fmClear' value='1' <?php echo ($fmClear) ? "checked" : ""?>>清空說明 -->
+    <!-- <input type=checkbox id='fmEngWord' name='fmEngWord' value='1' <?php echo ($fmEngWord) ? "checked" : ""?>>英文序號 -->
     <br>
-    <input class='button'        type='button' id='fmCreate' name='fmCreate' value='產生行號' onclick='btnSubmit(this)'>
-    <input class='button'        type='button' id='fmCreateLine' name='fmCreateLine' value='產生行號(無視格式)' onclick='btnSubmit(this)'>
+    <!-- <input class='button'        type='button' id='fmAddLineNo' name='fmAddLineNo' value='產生行號' onclick='btnSubmit(this)'> -->
     <input class='button'        type='button' id='strip_tags' name='strip_tags' value='strip_tags' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='stripline' name='stripline' value='去換行符號' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='strip_nl' name='strip_nl' value='換行轉空白' onclick='btnSubmit(this)'>
@@ -224,9 +211,6 @@
     <input class='button'        type='button' id='php_octal' name='php_octal' value='PHP八進位字串' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='php_hex' name='php_hex'     value='PHP十六進位字串' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='ascii' name='ascii'     value='ASCII' onclick='btnSubmit(this)'>
-    <input class='button'        type='button' id='lang_pms2lms' name='lang_pms2lms'     value='lang_pms2lms' onclick='btnSubmit(this)'>
-    <input class='button'        type='button' id='lms_update_log' name='lms_update_log'     value='功能更新列表' onclick='btnSubmit(this)'>
-    <input class='button'        type='button' id='css_converter' name='css_converter'     value='css顏色轉小寫' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='open_browser' name='open_browser'     value='開啟網址' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='curl_test' name='curl_test'     value=' CURL 測試網址' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='fmCopy' name='fmCopy' value='   ↑   ' onclick='result_to_input()'>
@@ -394,70 +378,6 @@
         return $result;
     }
 
-    function lang_pms2lms($str)
-    {
-        $arr = explode("\n", $str);
-        $str2 = "";
-        for($i=0; $i<count($arr); $i++)
-        {
-            $f = strpos($arr[$i], "\$m['") ;
-            if ($f === 0)
-            {
-                $arr[$i] = str_replace("\$m['", "\$msg", $arr[$i]);
-                $arr[$i][4] = strtoupper($arr[$i][4]);
-                $arr[$i] = ereg_replace("']([ ]+=)", "\\1", $arr[$i]);
-            }
-            $str2 .= "{$arr[$i]}\n";
-        }
-        return $str2;
-    }
-    function lms_update_log($str)
-    {
-        $arr = explode("\n", $str);
-        $str2 = "";
-        for($i=0; $i<count($arr); $i++)
-        {
-            $line = rtrim($arr[$i]);
-            if (ereg("^[0-9C.]+$", $line))
-            {
-                $str2 .= "<b>$line</b><br>\n";
-            }
-            else
-            {
-                $str2 .= str_replace(" ", "&nbsp;", $line) . "<br>\n";
-            }
-        }
-        return $str2;
-    }
-
-    function css_converter($str)
-    {
-        $arr = explode("\n", $str);
-        $str2 = "";
-        //echo "<pre>";
-        $tmp = "";
-        for($i=0; $i<count($arr); $i++)
-        {
-            $line = $arr[$i];
-            $tmp .= $line;
-            if (strpos($line, "}") !== false)
-            {
-                $pos = strpos($tmp, "{");
-                preg_match_all ("(#[0-9a-fA-F]+)", $tmp, $matches, PREG_SET_ORDER, $pos);
-                // print_r($matches);
-                for ($j=0; $j<count($matches); $j++)
-                {
-                    // echo strtoupper($matches[$j][0]) . "<br>";
-                    $tmp = str_replace($matches[$j][0], strtolower($matches[$j][0]), $tmp);
-                }
-                $str2 .= $tmp;
-                $tmp = "";
-            }
-        }
-        // echo "</pre>";
-        return $str2;
-    }
-
     /**
      * 將陣列轉為 php 程式碼的格式，方便程式內測試
      */
@@ -566,5 +486,5 @@
         return $response_code;
     }
 
-/* End of file create_log.php */
-/* Location: create_log.php */
+/* End of file text_editor.php */
+/* Location: text_editor.php */
