@@ -165,7 +165,7 @@
     }
 </script>
 <style>
-    textarea {font-size:14px; font-family: "Yahei Consolas Hybrid"}
+    textarea {font-size:14px; font-family: "Yahei Consolas Hybrid"; width:100%; height:200px}
     input.button {font-size:15px; font-family: "Yahei Consolas Hybrid"; border: 1px solid #aaa; margin:2px;}
     input.group1 {background: #88F;}
     input.group2 {background: #8f8;}
