@@ -7,7 +7,7 @@
         $str  = addslashes($str);
         $arg1 = str_replace("\\", "\\\\", $arg1);
         $code = <<<HTML
-<?
+<?php
     \$str = "$str";
     echo "src =  " . htmlspecialchars(\$str, ENT_QUOTES) . "<br>";
     \$str = preg_replace("$arg1", "$arg2", \$str);
@@ -22,11 +22,12 @@ HTML;
         $str  = addslashes($str);
         $arg1 = str_replace("\\", "\\\\", $arg1);
         $code = <<<HTML
-<?
+<?php
     \$str = "$str";
     echo "src =  " . htmlspecialchars(\$str, ENT_QUOTES) . "<br>";
-    \$result = (preg_match("$arg1", \$str)) ? "True" : "False";
+    \$result = (preg_match("$arg1", \$str, \$matches)) ? "True" : "False";
     echo "\$result<br>";
+    echo "<pre>matches = " . print_r(\$matches, TRUE). "</pre>";
 ?>
 HTML;
         return $code;
