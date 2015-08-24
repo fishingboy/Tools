@@ -1,5 +1,7 @@
 <?php
 include_once "const.php";
+include_once ("common.php");
+include_once ("debug_tool.php");
 
 /**
  * Migration Builder
@@ -20,7 +22,7 @@ class Migration_builder
      * @var array
      */
     private $FIELD_STRUCT = [
-        'type'       => 'VARCHAR',
+        'type'       => 'varchar',
         'constraint' => '100',
         'null'       => TRUE,
     ];
@@ -53,6 +55,10 @@ class Migration_builder
      */
     private function _parse()
     {
+        // 將 tab 轉成 space
+        $this->_text = str_replace("\t", "    ", $this->_text);
+
+        // 逐行解析
         $lines = explode("\n", $this->_text);
         $curr_table = '';
         foreach ($lines as $line)
@@ -91,13 +97,18 @@ class Migration_builder
                     $field_count++;
 
                     // 資料拆解
-                    $field         = $this->_parse_field($line);
-                    $field_name    = $field['name'];
-                    $field_comment = $field['comment'];
+                    $field            = $this->_parse_field($line);
+                    $field_name       = $field['name'];
+                    $field_comment    = $field['comment'];
+                    $field_type       = $field['type'];
+                    $field_constraint = $field['constraint'];
+                    $field_key        = $field['key'];
 
                     // 建立結構
-                    $this->_schema[$curr_table]['fields'][$field_name] = $this->FIELD_STRUCT;
-                    $this->_schema[$curr_table]['fields'][$field_name]['comment'] = $field_comment;
+                    $this->_schema[$curr_table]['fields'][$field_name]               = $this->FIELD_STRUCT;
+                    $this->_schema[$curr_table]['fields'][$field_name]['comment']    = $field_comment;
+                    $this->_schema[$curr_table]['fields'][$field_name]['type']       = $field_type;
+                    $this->_schema[$curr_table]['fields'][$field_name]['constraint'] = $field_constraint;
 
                     // 第一個欄位就是主 key
                     if ($field_count == 1)
@@ -106,6 +117,12 @@ class Migration_builder
                         $this->_schema[$curr_table]['fields'][$field_name]['type'] = 'INT';
                         $this->_schema[$curr_table]['fields'][$field_name]['auto_increment'] = TRUE;
                         unset($this->_schema[$curr_table]['fields'][$field_name]['constraint']);
+                    }
+
+                    // 索引
+                    if ($field_key)
+                    {
+                        $this->_schema[$curr_table]['index'][] = $field_name;
                     }
 
                     break;
@@ -135,7 +152,7 @@ class Migration_builder
      */
     public function get_CI_migration()
     {
-        $output = [];
+        $output_up = $output_down = [];
         foreach ($this->_schema as $table_name => $table)
         {
             // 拿掉欄位註解(CI 不支援)
@@ -145,10 +162,14 @@ class Migration_builder
             }
 
             // 取得語法
-            $output[] = $this->_ci_template($table_name, $table);
+            $output_up[]   = $this->_ci_up_template($table_name, $table);
+            $output_down[] = $this->_ci_down_template($table_name);
         }
 
-        return implode("\n\n", $output);
+        return [
+            'up'   => implode("\n\n", $output_up),
+            'down' => implode("\n\n", $output_down),
+        ];
     }
 
     /**
@@ -173,6 +194,9 @@ class Migration_builder
         // 欄位名稱
         $name = trim($tmp[0]);
 
+        // 索引
+        $key = (preg_match("/\[key\]/", $name)) ? 'index' : NULL;
+
         // 註解
         $comment = isset($tmp[1]) ? trim($tmp[1]) : '';
 
@@ -187,36 +211,67 @@ class Migration_builder
             $type = $tmp2[0];
             $constraint = (isset($tmp2[1])) ? $tmp2[1] : '';
         }
+        else if (preg_match('/_time$/', $name))
+        {
+            $type = 'datetime';
+        }
+        else if (preg_match('/ID$/', $name))
+        {
+            $type = 'int';
+            $key = 'index';
+        }
         else
         {
-            $type = 'VARCHAR';
+            $type = 'varchar';
         }
 
         return [
             'name'       => $name,
             'type'       => $type,
             'constraint' => $constraint,
-            'comment'    => $comment
+            'comment'    => $comment,
+            'key'        => $key,
         ];
     }
 
     /**
-     * CI Migration 語法的樣版
+     * CI Migration 語法的樣版 - up
      * @param  string $table_name 資料表名稱
      * @param  array $table      資料表格式
-     * @return string             CodeIgniter Migration 語法
+     * @return string             CodeIgniter Migration 語法 - up
      */
-    public function _ci_template($table_name, $table)
+    public function _ci_up_template($table_name, $table)
     {
-        // 取得 fields 的 php 語法
-        $fields = var_export($table['fields'], TRUE);
+        $code_arr = [];
 
-        $html = <<<HTML
-\$this->dbforge->add_field({$fields});
-\$this->dbforge->add_key('{$table['pk']}', TRUE);
-\$this->dbforge->create_table('{$table_name}');
-HTML;
-        return $this->_append_space($html);
+        // 欄位 schema
+        $fields = var_export($table['fields'], TRUE);
+        $code_arr[] = "\$this->dbforge->add_field({$fields});";
+
+        // 主 key
+        $code_arr[] = "\$this->dbforge->add_key('{$table['pk']}', TRUE);";
+
+        // 索引
+        foreach ( (array) $table['index'] as $field_name)
+        {
+            $code_arr[] = "\$this->dbforge->add_key('{$field_name}', FALSE);";
+        }
+
+        // 建立資料表
+        $code_arr[] = "\$this->dbforge->create_table('{$table_name}');";
+
+        $code = implode("\n", $code_arr);
+        return $this->_append_space($code);
+    }
+
+    /**
+     * CI Migration 語法的樣版 - down
+     * @param  string $table_name 資料表名稱
+     * @return string             CodeIgniter Migration 語法 - down
+     */
+    public function _ci_down_template($table_name)
+    {
+        return $this->_append_space("\$this->dbforge->drop_table('{$table_name}', TRUE);");
     }
 
     /**
@@ -228,12 +283,12 @@ HTML;
     private function _append_space($output, $length = 8)
     {
         $tmp = explode("\n", $output);
-        $output = '';
+        $output_arr = [];
         foreach ($tmp as $line)
         {
-            $output .= str_pad(' ', $length) . $line . "\n";
+            $output_arr[] = str_pad(' ', $length) . $line;
         }
-        return $output;
+        return implode("\n", $output_arr);
     }
 }
 
@@ -241,7 +296,6 @@ if ($_POST['fm_action'] == 'build')
 {
     $schema  = $_POST['fm_schema'];
     $builder = new Migration_builder($schema);
-    // $output  = $builder->get_migration();
     $output  = $builder->get_CI_migration();
 }
 ?>
@@ -255,23 +309,72 @@ if ($_POST['fm_action'] == 'build')
 <script type="text/javascript" src='sys/lib/js/jquery.tmpl.js'></script>
 <script type="text/javascript" src='sys/lib/js/jquery.tmpl.html.js'></script>
 <style type="text/css">
-textarea {font-size:14px; font-family: "Yahei Consolas Hybrid"; width:100%; height:300px;}
+textarea {font-size:14px; font-family: "Yahei Consolas Hybrid"; width:100%; height:200px;}
 input[type='button'] {background: #EFE;}
+.box {border: 1px solid #ccc; border-radius: 10px; background: #EFE;}
+.box .title {padding: 5px;}
 </style>
 </head>
 <body>
 <pre>
-==  Migration Builder (CI版) ==
+==  Migration Builder  ==
 </pre>
 <form id='form_editor' method='post'>
-    DB Schema (從 xmind 複製):
-    <textarea id='fm_schema' name='fm_schema' onfocus='this.select()'><?= $schema ?></textarea>
+    <div class='box'>
+        <div class='title'>DB Schema (從 xmind 複製):</div>
+        <textarea id='fm_schema' name='fm_schema' onfocus='this.select()'><?= $schema ?></textarea>
+    </div>
     FrameWork:
-    <input type='radio' name='type' value='CI'> Codeigniter
-    <input type='radio' name='type' value='Laravel'> Laravel
-    <input type='submit' value='產生 Migration 語法'>
-    <textarea id='fm_output' name='fm_output' onfocus='this.select()'><?= $output ?></textarea>
-    <input type='hidden' name='fm_action' value='build'>
+    <input type='radio' name='type' value='CI' checked> Codeigniter
+    <input type='radio' name='type' value='Laravel' disabled> Laravel
+    <input type='submit' value='產生語法'>
+    <div class='box'>
+        <div class='title'>up():</div>
+        <textarea id='fm_output_up' name='fm_output_up' onfocus='this.select()'><?= $output['up'] ?></textarea>
+        <div class='title'>down():</div>
+        <textarea id='fm_output_down' name='fm_output_down' onfocus='this.select()'><?= $output['down'] ?></textarea>
+        <input type='hidden' name='fm_action' value='build'>
+    </div>
+
+<pre>
+** 資料可以直接從 xmind 複制過來
+
+範例：
+資料表
+    user - 帳號
+        userID
+        account (varchar, 100) - 帳號
+        password (varchar, 200) - 密碼
+        roleType (int) [key] - 角色類別
+        status (int) [key] - 狀態
+            0 停用
+            1 啟用
+        name (varchar, 100) - 姓名
+        adminPriv (int)- 模組管理權限
+            以 bit 表示各模組權限
+            系統管理者為固定帳號 admin
+            系統管理者權限不可修改
+        userAdminPriv (int) - 使用者管理權限
+            管理使用者權限
+            看要不要綁定特定帳號然後不可調整
+        create_time
+        update_time
+
+說明：
+* 第一個欄位會自動變成主 key
+* 以縮排區分資料類型(因為 xmind 會自動縮排)
+   4 個空白: 資料表名稱
+   8 個空白: 資料表欄位名稱
+   8 個空白以上，都當成註解
+* 每一欄的格式為
+    {field_name} ({type}, [{長度限制}]) [key] - {description}
+    例如:
+    account (varchar, 100) - 帳號
+    roleType (int) [key] - 角色類別
+    adminPriv (int)- 模組管理權限
+* 欄位名稱結尾為 _time ，會自動變成 datetime 格式
+* 欄位名稱結尾為 ID ，會自動變成 int 格式，並設為 index
+</pre>
 </form>
 </body>
 </html>
