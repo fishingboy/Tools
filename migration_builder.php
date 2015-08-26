@@ -120,9 +120,12 @@ class Migration_builder
 
                     // 建立結構
                     $this->_schema[$curr_table]['fields'][$field_name]               = $this->FIELD_STRUCT;
-                    $this->_schema[$curr_table]['fields'][$field_name]['comment']    = $field_comment;
                     $this->_schema[$curr_table]['fields'][$field_name]['type']       = $field_type;
                     $this->_schema[$curr_table]['fields'][$field_name]['constraint'] = $field_constraint;
+                    if ($field_comment)
+                    {
+                        $this->_schema[$curr_table]['fields'][$field_name]['comment']    = $field_comment;
+                    }
 
                     // 第一個欄位就是主 key
                     if ($field_count == 1)
@@ -131,6 +134,8 @@ class Migration_builder
                         $this->_schema[$curr_table]['fields'][$field_name]['type'] = 'INT';
                         $this->_schema[$curr_table]['fields'][$field_name]['auto_increment'] = TRUE;
                         unset($this->_schema[$curr_table]['fields'][$field_name]['constraint']);
+                        // 避免主 key 重覆建立索引
+                        unset($field_key);
                     }
 
                     // 外來鍵
@@ -175,12 +180,6 @@ class Migration_builder
         $output_up = $output_down = [];
         foreach ($this->_schema as $table_name => $table)
         {
-            // 拿掉欄位註解(CI 不支援)
-            foreach ($table['fields'] as $field_name => $field_param)
-            {
-                unset($table['fields'][$field_name]['comment']);
-            }
-
             // 取得語法
             $output_up[]   = $this->_ci_up_template($table_name, $table);
             $output_down[] = $this->_ci_down_template($table_name);
@@ -225,7 +224,7 @@ class Migration_builder
         $name = trim($tmp[0]);
 
         // 索引
-        $key = (preg_match("/\[key\]/", $name)) ? 'index' : NULL;
+        $key = (preg_match("/\[key\]/", $name));
 
         // 外來鍵
         if (preg_match("/\[fk:(.*)\]/", $name, $matches))
@@ -236,6 +235,9 @@ class Migration_builder
                 'referer_table' => $tmp[0],
                 'referer_field' => $tmp[1],
             ];
+
+            // 一併建立索引
+            $key = TRUE;
         }
 
         // 註解
@@ -301,12 +303,6 @@ class Migration_builder
 
         // 建立資料表
         $code_arr[] = "\$this->dbforge->create_table('{$table_name}');";
-
-        // // 外來鍵(必須在建立資料表之後執行)
-        // foreach ( (array) $table['fk'] as $field_name => $referer)
-        // {
-        //     $code_arr[] = "\$this->db->query('ALTER TABLE {$table_name} ADD FOREIGN KEY ({$field_name}) REFERENCES {$referer['referer_table']} ({$referer['referer_field']})');";
-        // }
 
         $code = implode("\n", $code_arr);
         return $this->_append_space($code);
