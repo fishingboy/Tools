@@ -34,6 +34,18 @@ class Migration_builder
     private $_text;
 
     /**
+     * 哪個 framework
+     * @var string
+     */
+    private $_framework;
+
+    /**
+     * 資料庫 (mysql, mssql, oracle)
+     * @var string
+     */
+    private $_db;
+
+    /**
      * 解析後的資料格式
      * @var array
      */
@@ -43,10 +55,11 @@ class Migration_builder
      * 建構子
      * @param string $text 從 xmind 來的原始 schema
      */
-    public function __construct($text)
+    public function __construct($text, $framework = 'CI', $db = 'mssql')
     {
-        $this->_text =  $text;
-        $this->_type =  $type;
+        $this->_text      = $text;
+        $this->_framework = $framework;
+        $this->_db        = $db;
         $this->_parse();
     }
 
@@ -103,12 +116,16 @@ class Migration_builder
                     $field_type       = $field['type'];
                     $field_constraint = $field['constraint'];
                     $field_key        = $field['key'];
+                    $field_fk         = $field['fk'];
 
                     // 建立結構
                     $this->_schema[$curr_table]['fields'][$field_name]               = $this->FIELD_STRUCT;
-                    $this->_schema[$curr_table]['fields'][$field_name]['comment']    = $field_comment;
                     $this->_schema[$curr_table]['fields'][$field_name]['type']       = $field_type;
                     $this->_schema[$curr_table]['fields'][$field_name]['constraint'] = $field_constraint;
+                    if ($field_comment)
+                    {
+                        $this->_schema[$curr_table]['fields'][$field_name]['comment']    = $field_comment;
+                    }
 
                     // 第一個欄位就是主 key
                     if ($field_count == 1)
@@ -117,6 +134,14 @@ class Migration_builder
                         $this->_schema[$curr_table]['fields'][$field_name]['type'] = 'INT';
                         $this->_schema[$curr_table]['fields'][$field_name]['auto_increment'] = TRUE;
                         unset($this->_schema[$curr_table]['fields'][$field_name]['constraint']);
+                        // 避免主 key 重覆建立索引
+                        unset($field_key);
+                    }
+
+                    // 外來鍵
+                    if ($field_fk)
+                    {
+                        $this->_schema[$curr_table]['fk'][$field_name] = $field_fk;
                     }
 
                     // 索引
@@ -155,20 +180,24 @@ class Migration_builder
         $output_up = $output_down = [];
         foreach ($this->_schema as $table_name => $table)
         {
-            // 拿掉欄位註解(CI 不支援)
-            foreach ($table['fields'] as $field_name => $field_param)
-            {
-                unset($table['fields'][$field_name]['comment']);
-            }
-
             // 取得語法
             $output_up[]   = $this->_ci_up_template($table_name, $table);
             $output_down[] = $this->_ci_down_template($table_name);
+
+            // 外來鍵
+            $fk = $this->_ci_fk_template($table_name, $table);
+            if ($fk)
+            {
+                $output_fk_up[]   = $fk['up'];
+                $output_fk_down[] = $fk['down'];
+            }
         }
 
         return [
-            'up'   => implode("\n\n", $output_up),
-            'down' => implode("\n\n", $output_down),
+            'up'      => implode("\n\n", $output_up),
+            'down'    => implode("\n", $output_down),
+            'fk_up'   => implode("\n", $output_fk_up),
+            'fk_down' => implode("\n", $output_fk_down),
         ];
     }
 
@@ -195,7 +224,21 @@ class Migration_builder
         $name = trim($tmp[0]);
 
         // 索引
-        $key = (preg_match("/\[key\]/", $name)) ? 'index' : NULL;
+        $key = (preg_match("/\[key\]/", $name));
+
+        // 外來鍵
+        if (preg_match("/\[fk:(.*)\]/", $name, $matches))
+        {
+            $referer = $matches[1];
+            $tmp = explode('.', $referer);
+            $fk = [
+                'referer_table' => $tmp[0],
+                'referer_field' => $tmp[1],
+            ];
+
+            // 一併建立索引
+            $key = TRUE;
+        }
 
         // 註解
         $comment = isset($tmp[1]) ? trim($tmp[1]) : '';
@@ -231,6 +274,7 @@ class Migration_builder
             'constraint' => $constraint,
             'comment'    => $comment,
             'key'        => $key,
+            'fk'         => $fk
         ];
     }
 
@@ -265,6 +309,83 @@ class Migration_builder
     }
 
     /**
+     * CI Migration 語法的樣版 - up
+     * @param  string $table_name 資料表名稱
+     * @param  array $table      資料表格式
+     * @return string             CodeIgniter Migration 語法 - up
+     */
+    public function _ci_fk_template($table_name, $table)
+    {
+        $code_arr_up = $code_arr_down = [];
+
+        // 區隔符號
+        $symbol_before = ($this->_db == 'mssql') ? '[' : '`';
+        $symbol_after  = ($this->_db == 'mssql') ? ']' : '`';
+
+        // 外來鍵(必須在建立資料表之後執行)
+        foreach ( (array) $table['fk'] as $field_name => $referer)
+        {
+            // up
+            $code_arr_up[] = "\$this->db->query('ALTER TABLE {$symbol_before}{$table_name}{$symbol_after}
+                    ADD CONSTRAINT {$symbol_before}fk_{$table_name}_{$field_name}{$symbol_after}
+                    FOREIGN KEY ({$field_name})
+                    REFERENCES {$symbol_before}{$referer['referer_table']}{$symbol_after} ({$referer['referer_field']})');";
+
+            // down
+            if ($this->_db == 'mssql')
+            {
+                $code_arr_down[] = "\$this->db->query('ALTER TABLE {$symbol_before}{$table_name}{$symbol_after}
+                        DROP fk_{$table_name}_{$field_name}');";
+            }
+            else
+            {
+                $code_arr_down[] = "\$this->db->query('ALTER TABLE {$symbol_before}{$table_name}{$symbol_after}
+                        DROP FOREIGN KEY fk_{$table_name}_{$field_name}');";
+            }
+        }
+
+        if (count($code_arr_up))
+        {
+            $code_up   = implode("\n", $code_arr_up);
+            $code_down = implode("\n", $code_arr_down);
+            return [
+                'up'   => $this->_append_space($code_up),
+                'down' => $this->_append_space($code_down)
+            ];
+        }
+        else
+        {
+            return FALSE;
+        }
+    }
+
+    /**
+     * CI Migration 語法的樣版 - up
+     * @param  string $table_name 資料表名稱
+     * @param  array $table      資料表格式
+     * @return string             CodeIgniter Migration 語法 - up
+     */
+    public function _ci_fk_down_template($table_name, $table)
+    {
+        $code_arr = [];
+
+        // 外來鍵(必須在建立資料表之後執行)
+        foreach ( (array) $table['fk'] as $field_name => $referer)
+        {
+        }
+
+        if (count($code_arr))
+        {
+            $code = implode("\n", $code_arr);
+            return $this->_append_space($code);
+        }
+        else
+        {
+            return FALSE;
+        }
+    }
+
+    /**
      * CI Migration 語法的樣版 - down
      * @param  string $table_name 資料表名稱
      * @return string             CodeIgniter Migration 語法 - down
@@ -292,10 +413,16 @@ class Migration_builder
     }
 }
 
+
+
+
 if ($_POST['fm_action'] == 'build')
 {
-    $schema  = $_POST['fm_schema'];
-    $builder = new Migration_builder($schema);
+    $schema    = $_POST['fm_schema'];
+    $framework = $_POST['fm_framework'];
+    $db        = $_POST['fm_db'];
+
+    $builder = new Migration_builder($schema, $framework, $db);
     $output  = $builder->get_CI_migration();
 }
 ?>
@@ -320,20 +447,34 @@ input[type='button'] {background: #EFE;}
 ==  Migration Builder  ==
 </pre>
 <form id='form_editor' method='post'>
+    <input type='hidden' name='fm_action' value='build'>
     <div class='box'>
         <div class='title'>DB Schema (從 xmind 複製):</div>
         <textarea id='fm_schema' name='fm_schema' onfocus='this.select()'><?= $schema ?></textarea>
     </div>
-    FrameWork:
-    <input type='radio' name='type' value='CI' checked> Codeigniter
-    <input type='radio' name='type' value='Laravel' disabled> Laravel
+    <div>
+        FrameWork:
+        <input type='radio' name='fm_framework' value='CI' checked> Codeigniter
+        <input type='radio' name='fm_framework' value='Laravel' disabled> Laravel,
+    </div>
+    <div>
+        資料庫(只影響 Foreign Key):
+        <input type='radio' name='fm_db' value='mysql'> MySQL
+        <input type='radio' name='fm_db' value='mssql' checked> SQL SERVER
+        <input type='radio' name='fm_db' value='oracle' disabled> Oracle
+    </div>
     <input type='submit' value='產生語法'>
     <div class='box'>
         <div class='title'>up():</div>
         <textarea id='fm_output_up' name='fm_output_up' onfocus='this.select()'><?= $output['up'] ?></textarea>
         <div class='title'>down():</div>
         <textarea id='fm_output_down' name='fm_output_down' onfocus='this.select()'><?= $output['down'] ?></textarea>
-        <input type='hidden' name='fm_action' value='build'>
+        <?php if (isset($output['fk_up'])): ?>
+            <div class='title'>Foreign Key - up():</div>
+            <textarea id='fm_output_fk' name='fm_output_fk' onfocus='this.select()'><?= $output['fk_up'] ?></textarea>
+            <div class='title'>Foreign Key - down():</div>
+            <textarea id='fm_output_fk' name='fm_output_fk' onfocus='this.select()'><?= $output['fk_down'] ?></textarea>
+        <?php endif; ?>
     </div>
 
 <pre>
@@ -367,11 +508,12 @@ input[type='button'] {background: #EFE;}
    8 個空白: 資料表欄位名稱
    8 個空白以上，都當成註解
 * 每一欄的格式為
-    {field_name} ({type}, [{長度限制}]) [key] - {description}
+    {field_name} ({type}, [{長度限制}]) [key] [fk:referer_table.referer.field] - {description}
     例如:
     account (varchar, 100) - 帳號
     roleType (int) [key] - 角色類別
     adminPriv (int)- 模組管理權限
+* fk 為外來鍵
 * 欄位名稱結尾為 _time ，會自動變成 datetime 格式
 * 欄位名稱結尾為 ID ，會自動變成 int 格式，並設為 index
 </pre>
