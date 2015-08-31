@@ -22,7 +22,7 @@ class Migration_builder
      * @var array
      */
     private $FIELD_STRUCT = [
-        'type'       => 'varchar',
+        'type'       => 'nvarchar',
         'constraint' => '100',
         'null'       => TRUE,
     ];
@@ -275,7 +275,13 @@ class Migration_builder
         }
         else
         {
-            $type = 'varchar';
+            $type = 'nvarchar';
+        }
+
+        // varchar 強轉成 nvarcahr
+        if ($type == 'varchar')
+        {
+            $type = 'nvarchar';
         }
 
         return [
