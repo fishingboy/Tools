@@ -117,11 +117,18 @@ class Migration_builder
                     $field_constraint = $field['constraint'];
                     $field_key        = $field['key'];
                     $field_fk         = $field['fk'];
+                    $field_unique     = $field['unique'];
 
                     // 建立結構
                     $this->_schema[$curr_table]['fields'][$field_name]               = $this->FIELD_STRUCT;
                     $this->_schema[$curr_table]['fields'][$field_name]['type']       = $field_type;
                     $this->_schema[$curr_table]['fields'][$field_name]['constraint'] = $field_constraint;
+                    // 唯一值
+                    if ($field_unique)
+                    {
+                        $this->_schema[$curr_table]['fields'][$field_name]['unique']    = $field_unique;
+                    }
+                    // 註解
                     if ($field_comment)
                     {
                         $this->_schema[$curr_table]['fields'][$field_name]['comment']    = $field_comment;
@@ -226,6 +233,9 @@ class Migration_builder
         // 索引
         $key = (preg_match("/\[key\]/", $name));
 
+        // 唯一
+        $unique = (preg_match("/\[unique\]/", $name));
+
         // 外來鍵
         if (preg_match("/\[fk:(.*)\]/", $name, $matches))
         {
@@ -244,7 +254,7 @@ class Migration_builder
         $comment = isset($tmp[1]) ? trim($tmp[1]) : '';
 
         // TYPE (取得括號內的字串)
-        if (preg_match('/([a-z\_]+) \((.*)\)/i', $name, $matches))
+        if (preg_match('/([a-z0-9\_]+) \((.*)\)/i', $name, $matches))
         {
             $name = $matches[1];
 
@@ -274,7 +284,8 @@ class Migration_builder
             'constraint' => $constraint,
             'comment'    => $comment,
             'key'        => $key,
-            'fk'         => $fk
+            'fk'         => $fk,
+            'unique'     => $unique
         ];
     }
 
