@@ -1,4 +1,0 @@
-php_flag short_open_tag On
-php_flag error_reporting E_ALL 
-php_flag error_reporting ~E_DEPRECATED
-php_flag error_reporting ~E_STRICT
