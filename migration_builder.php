@@ -1,4 +1,6 @@
 <?php
+header("content-type: text/html; charset=utf-8");
+
 include_once "const.php";
 
 /**
@@ -165,6 +167,8 @@ class Migration_builder
      */
     public function get_migration()
     {
+        echo "<pre>this->_schema = " . print_r($this->_schema, TRUE). "</pre>";
+
         $output_up = $output_down = $output_fk_up = $output_fk_down = [];
         foreach ($this->_schema as $table_name => $table)
         {
@@ -225,7 +229,7 @@ class Migration_builder
         $comment = isset($tmp[1]) ? trim($tmp[1]) : '';
 
         // TYPE (取得括號內的字串)
-        if (preg_match('/([a-z\_]+) \((.*)\)/i', $name, $matches))
+        if (preg_match('/([a-z\_]+)[ ]+\((.*)\)/i', $name, $matches))
         {
             $name = $matches[1];
 
@@ -233,13 +237,13 @@ class Migration_builder
             $type_str = $matches[2];
             $tmp2 = explode(',', $type_str);
             $type = $tmp2[0];
-            $constraint = (isset($tmp2[1])) ? $tmp2[1] : '';
+            $constraint = (isset($tmp2[1])) ? trim($tmp2[1]) : '';
         }
-        else if (preg_match('/_time$/', $name))
+        else if (preg_match('/_time$|_at$/', $name))
         {
             $type = 'datetime';
         }
-        else if (preg_match('/ID$/', $name))
+        else if (preg_match('/ID$|id$/', $name))
         {
             $type = 'int';
             $key = 'index';
@@ -265,7 +269,7 @@ class Migration_builder
      * @param  integer $length 縮排長度
      * @return string          縮排後語法
      */
-    protected function _append_space($output, $length = 8)
+    public static function append_space($output, $length = 8)
     {
         $tmp = explode("\n", $output);
         $output_arr = [];
@@ -307,7 +311,7 @@ class CI_Migration_builder extends Migration_builder
         $code_arr[] = "\$this->dbforge->create_table('{$table_name}');";
 
         $code = implode("\n", $code_arr);
-        return $this->_append_space($code);
+        return self::append_space($code);
     }
 
     /**
@@ -352,8 +356,8 @@ class CI_Migration_builder extends Migration_builder
             $code_up   = implode("\n", $code_arr_up);
             $code_down = implode("\n", $code_arr_down);
             return [
-                'up'   => $this->_append_space($code_up),
-                'down' => $this->_append_space($code_down)
+                'up'   => self::append_space($code_up),
+                'down' => self::append_space($code_down)
             ];
         }
         else
@@ -380,7 +384,7 @@ class CI_Migration_builder extends Migration_builder
         if (count($code_arr))
         {
             $code = implode("\n", $code_arr);
-            return $this->_append_space($code);
+            return self::append_space($code);
         }
         else
         {
@@ -395,18 +399,220 @@ class CI_Migration_builder extends Migration_builder
      */
     public function _down_template($table_name)
     {
-        return $this->_append_space("\$this->dbforge->drop_table('{$table_name}', TRUE);");
+        return self::append_space("\$this->dbforge->drop_table('{$table_name}', TRUE);");
     }
 }
 
-if ($_POST['fm_action'] == 'build')
+/**
+ * Migration Builder - Laravel 版本
+ */
+class Laravel_Migration_builder extends Migration_builder
+{
+    /**
+     * CI Migration 語法的樣版 - up
+     * @param  string $table_name 資料表名稱
+     * @param  array $table       資料表格式
+     * @return string             CodeIgniter Migration 語法 - up
+     */
+    public function _up_template($table_name, $table)
+    {
+        $code_arr = [];
+
+        // laravel timestamps
+        $timestamps = '';
+        if (isset($table['fields']['created_at']) && isset($table['fields']['updated_at']))
+        {
+            $timestamps = self::append_space('$table->timestamps();', 12);
+            unset($table['fields']['created_at']);
+            unset($table['fields']['updated_at']);
+        }
+
+        // 欄位 schema
+        foreach ($table['fields'] as $key => $attrs)
+        {
+            $type = 'string';
+            $constraint = "";
+            switch ($attrs['type'])
+            {
+                case 'int':
+                    $type = 'integer';
+                    break;
+
+                case 'float':
+                    $type = 'integer';
+                    break;
+
+                case 'text':
+                    $type = 'text';
+                    break;
+
+                case 'dateTime':
+                    $type = 'dateTime';
+                    break;
+
+                case 'enum':
+                    $type = 'enum';
+                    echo "<pre>attrs = " . print_r($attrs, TRUE). "</pre>";
+                    $tmp = explode('/', $attrs['constraint']);
+                    $constraint = ', ' . var_export($tmp, TRUE);
+                    break;
+
+                case 'varchar':
+                default:
+                    $type = 'string';
+                    break;
+            }
+
+            if ($key == 'id' || preg_match('/ID$/', $key))
+            {
+                $type = 'increments';
+            }
+
+            $comment = (isset($attrs['comment'])) ? "->comment('{$attrs['comment']}')" : '';
+            $code_arr[] = "\$table->{$type}('{$key}'{$constraint}){$comment};";
+        }
+
+        // 主 key
+        // $table->increments('id'); 就已經設定好主 key 了
+        // $index_arr[] = "\$table->primary('{$table['pk']}');";
+
+        // 索引
+        // $index_arr = [];
+        foreach ( (array) $table['index'] as $field_name)
+        {
+            $index_arr[] = "\$table->index('{$field_name}');";
+        }
+        $index = self::append_space(implode("\n", $index_arr), 12);
+
+        $fields_code = self::append_space(implode("\n", $code_arr), 12);
+        $code = <<<HTML
+        Schema::create('{$table_name}', function (Blueprint \$table)
+        {
+$fields_code
+$timestamps
+$index
+        });
+HTML;
+        return $code;
+    }
+
+    /**
+     * CI Migration 語法的樣版 - down
+     * @param  string $table_name 資料表名稱
+     * @return string             CodeIgniter Migration 語法 - down
+     */
+    public function _down_template($table_name)
+    {
+        return self::append_space("Schema::drop('{$table_name}');", 12);
+    }
+
+    /**
+     * CI Migration 語法的樣版 - up
+     * @param  string $table_name 資料表名稱
+     * @param  array $table      資料表格式
+     * @return string             CodeIgniter Migration 語法 - up
+     */
+    public function _fk_template($table_name, $table)
+    {
+        $code_arr_up = $code_arr_down = [];
+
+        // 區隔符號
+        $symbol_before = ($this->_db == 'mssql') ? '[' : '`';
+        $symbol_after  = ($this->_db == 'mssql') ? ']' : '`';
+
+        // 外來鍵(必須在建立資料表之後執行)
+        $table['fk'] = (isset($table['fk'])) ? $table['fk'] : [];
+        foreach ( (array) $table['fk'] as $field_name => $referer)
+        {
+            // up
+            $code_arr_up[] = "\$this->db->query('ALTER TABLE {$symbol_before}{$table_name}{$symbol_after}
+                    ADD CONSTRAINT {$symbol_before}fk_{$table_name}_{$field_name}{$symbol_after}
+                    FOREIGN KEY ({$field_name})
+                    REFERENCES {$symbol_before}{$referer['referer_table']}{$symbol_after} ({$referer['referer_field']})');";
+
+            // down
+            if ($this->_db == 'mssql')
+            {
+                $code_arr_down[] = "\$this->db->query('ALTER TABLE {$symbol_before}{$table_name}{$symbol_after}
+                        DROP fk_{$table_name}_{$field_name}');";
+            }
+            else
+            {
+                $code_arr_down[] = "\$this->db->query('ALTER TABLE {$symbol_before}{$table_name}{$symbol_after}
+                        DROP FOREIGN KEY fk_{$table_name}_{$field_name}');";
+            }
+        }
+
+        if (count($code_arr_up))
+        {
+            $code_up   = implode("\n", $code_arr_up);
+            $code_down = implode("\n", $code_arr_down);
+            return [
+                'up'   => self::append_space($code_up),
+                'down' => self::append_space($code_down)
+            ];
+        }
+        else
+        {
+            return FALSE;
+        }
+    }
+
+    /**
+     * CI Migration 語法的樣版 - up
+     * @param  string $table_name 資料表名稱
+     * @param  array $table      資料表格式
+     * @return string             CodeIgniter Migration 語法 - up
+     */
+    public function _fk_down_template($table_name, $table)
+    {
+        $code_arr = [];
+
+        // 外來鍵(必須在建立資料表之後執行)
+        foreach ( (array) $table['fk'] as $field_name => $referer)
+        {
+        }
+
+        if (count($code_arr))
+        {
+            $code = implode("\n", $code_arr);
+            return self::append_space($code);
+        }
+        else
+        {
+            return FALSE;
+        }
+    }
+}
+
+
+$schema = "";
+$framework = "Laravel";
+$output = [
+    'up' => '',
+    'down' => '',
+    'fk_up' => '',
+    'fk_down' => '',
+];
+if (isset($_POST['fm_action']))
 {
     $schema    = $_POST['fm_schema'];
     $framework = $_POST['fm_framework'];
     $db        = $_POST['fm_db'];
 
-    $builder = new CI_Migration_builder($schema, $framework, $db);
-    $output  = $builder->get_migration();
+    switch ($_POST['fm_action'])
+    {
+        case 'shift':
+            $schema = Migration_builder::append_space($schema, 4);
+            break;
+
+        case 'build':
+        default:
+            $builder_name =  $framework . '_Migration_builder';
+            $builder = new $builder_name($schema, $framework, $db);
+            $output  = $builder->get_migration();
+            break;
+    }
 }
 ?>
 <html>
@@ -424,21 +630,28 @@ input[type='button'] {background: #EFE;}
 .box {border: 1px solid #ccc; border-radius: 10px; background: #EFE;}
 .box .title {padding: 5px;}
 </style>
+<script>
+function go(action)
+{
+    $('#fm_action').val(action);
+    $('#form_migration').submit();
+}
+</script>
 </head>
 <body>
 <pre>
 ==  Migration Builder  ==
 </pre>
-<form id='form_editor' method='post'>
-    <input type='hidden' name='fm_action' value='build'>
+<form id='form_migration' method='post'>
+    <input type='hidden' id='fm_action' name='fm_action' value=''>
     <div class='box'>
         <div class='title'>DB Schema (從 xmind 複製):</div>
         <textarea id='fm_schema' name='fm_schema' onfocus='this.select()'><?= $schema ?></textarea>
     </div>
     <div>
         FrameWork:
-        <input type='radio' name='fm_framework' value='CI' checked> Codeigniter
-        <input type='radio' name='fm_framework' value='Laravel'> Laravel,
+        <input type='radio' name='fm_framework' value='CI'      <?= ($framework == 'CI') ? 'checked' : '' ?> > Codeigniter
+        <input type='radio' name='fm_framework' value='Laravel' <?= ($framework == 'Laravel') ? 'checked' : '' ?>> Laravel,
     </div>
     <div>
         資料庫(只影響 Foreign Key):
@@ -446,7 +659,8 @@ input[type='button'] {background: #EFE;}
         <input type='radio' name='fm_db' value='mssql' checked> SQL SERVER
         <input type='radio' name='fm_db' value='oracle' disabled> Oracle
     </div>
-    <input type='submit' value='產生語法'>
+    <input type='button' id='build' value='產生語法' onclick='go(this.id)'>
+    <input type='button' id='shift' value='->'      onclick='go(this.id)'>
     <div class='box'>
         <div class='title'>up():</div>
         <textarea id='fm_output_up' name='fm_output_up' onfocus='this.select()'><?= $output['up'] ?></textarea>

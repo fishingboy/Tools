@@ -9,7 +9,7 @@
 
     include_once('const.php');
 
-    $program = ($_GET['program']) ? $_GET['program'] : 'text_editor';
+    $program = (isset($_GET['program'])) ? $_GET['program'] : 'text_editor';
 ?>
 <html>
 <head>
