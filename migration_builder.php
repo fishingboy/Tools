@@ -155,6 +155,10 @@ class Migration_builder
                 // 註解
                 case 12:
                 default:
+                    if ( ! isset($this->_schema[$curr_table]['fields'][$field_name]['comment']))
+                    {
+                        echo "$curr_table -> $field_name -> comment not defined!! <br>";
+                    }
                     $this->_schema[$curr_table]['fields'][$field_name]['comment'] .= ', ' . trim($line);
                     break;
             }
@@ -167,7 +171,7 @@ class Migration_builder
      */
     public function get_migration()
     {
-        echo "<pre>this->_schema = " . print_r($this->_schema, TRUE). "</pre>";
+        // echo "<pre>this->_schema = " . print_r($this->_schema, TRUE). "</pre>";
 
         $output_up = $output_down = $output_fk_up = $output_fk_down = [];
         foreach ($this->_schema as $table_name => $table)
@@ -206,13 +210,14 @@ class Migration_builder
         $tmp = explode('-', $str);
 
         // 欄位名稱
-        $name = trim($tmp[0]);
+        $field_str = trim($tmp[0]);
+        $name = explode(" ", $field_str)[0];
 
         // 索引
-        $key = (preg_match("/\[key\]/", $name));
+        $key = (preg_match("/\[key\]/", $field_str));
 
         // 外來鍵
-        if (preg_match("/\[fk:(.*)\]/", $name, $matches))
+        if (preg_match("/\[fk:(.*)\]/", $field_str, $matches))
         {
             $referer = $matches[1];
             $tmp = explode('.', $referer);
@@ -229,21 +234,19 @@ class Migration_builder
         $comment = isset($tmp[1]) ? trim($tmp[1]) : '';
 
         // TYPE (取得括號內的字串)
-        if (preg_match('/([a-z\_]+)[ ]+\((.*)\)/i', $name, $matches))
+        if (preg_match('/\((.*)\)/i', $field_str, $matches))
         {
-            $name = $matches[1];
-
             // 拆解 type
-            $type_str = $matches[2];
+            $type_str = $matches[1];
             $tmp2 = explode(',', $type_str);
             $type = $tmp2[0];
             $constraint = (isset($tmp2[1])) ? trim($tmp2[1]) : '';
         }
-        else if (preg_match('/_time$|_at$/', $name))
+        else if (preg_match('/_time$|_at$/', $field_str))
         {
             $type = 'datetime';
         }
-        else if (preg_match('/ID$|id$/', $name))
+        else if (preg_match('/ID$|id$/', $field_str))
         {
             $type = 'int';
             $key = 'index';
@@ -418,6 +421,11 @@ class Laravel_Migration_builder extends Migration_builder
     {
         $code_arr = [];
 
+        if ( ! isset($table['fields']))
+        {
+            return FALSE;
+        }
+
         // laravel timestamps
         $timestamps = '';
         if (isset($table['fields']['created_at']) && isset($table['fields']['updated_at']))
@@ -452,7 +460,7 @@ class Laravel_Migration_builder extends Migration_builder
 
                 case 'enum':
                     $type = 'enum';
-                    echo "<pre>attrs = " . print_r($attrs, TRUE). "</pre>";
+                    // echo "<pre>attrs = " . print_r($attrs, TRUE). "</pre>";
                     $tmp = explode('/', $attrs['constraint']);
                     $constraint = ', ' . var_export($tmp, TRUE);
                     break;
@@ -477,10 +485,13 @@ class Laravel_Migration_builder extends Migration_builder
         // $index_arr[] = "\$table->primary('{$table['pk']}');";
 
         // 索引
-        // $index_arr = [];
-        foreach ( (array) $table['index'] as $field_name)
+        $index_arr = [];
+        if (isset($table['index']))
         {
-            $index_arr[] = "\$table->index('{$field_name}');";
+            foreach ( (array) $table['index'] as $field_name)
+            {
+                $index_arr[] = "\$table->index('{$field_name}');";
+            }
         }
         $index = self::append_space(implode("\n", $index_arr), 12);
 
