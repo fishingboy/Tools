@@ -691,6 +691,8 @@ function go(action)
 
 <pre>
 ** 資料可以直接從 xmind 複制過來
+(xmind 範例: <a href='/sys/sample/db_schema.xmind'>下載</a>)
+(xmind 官網: http://actsmind.com/blog/software/xmind3download)
 
 範例：
 資料表
