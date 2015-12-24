@@ -694,24 +694,22 @@ function go(action)
 
 範例：
 資料表
-    user - 帳號
-        userID
-        account (varchar, 100) - 帳號
-        password (varchar, 200) - 密碼
-        roleType (int) [key] - 角色類別
-        status (int) [key] - 狀態
-            0 停用
-            1 啟用
-        name (varchar, 100) - 姓名
-        adminPriv (int)- 模組管理權限
-            以 bit 表示各模組權限
-            系統管理者為固定帳號 admin
-            系統管理者權限不可修改
-        userAdminPriv (int) - 使用者管理權限
-            管理使用者權限
-            看要不要綁定特定帳號然後不可調整
-        create_time
-        update_time
+    user_details - 使用者資訊
+        id
+        user_id [fk:users.id] - 使用者編號
+        age (int) - 年齡
+        educational_background (varchar, 200) - 學歷
+        sex  (enum, male/female) [key] - 性別: male-男, female-女
+        role (enum, teacher/parents/admin) [key] - 身份
+            teacher-老師
+            parents-家長
+            admin-管理者
+        img (varchar, 200) - 照片
+        note (text) - 其他備註
+        start_date (varchar, 200) - 開始日期
+        priv (tinyint) - 教師是否有投遞履歷與更新功能 : 1|0
+        created_at
+        updated_at
 
 說明：
 * 第一個欄位會自動變成主 key
@@ -726,8 +724,8 @@ function go(action)
     roleType (int) [key] - 角色類別
     adminPriv (int)- 模組管理權限
 * fk 為外來鍵
-* 欄位名稱結尾為 _time ，會自動變成 datetime 格式
-* 欄位名稱結尾為 ID ，會自動變成 int 格式，並設為 index
+* 欄位名稱結尾為 _time 或 _at ，會自動變成 datetime 格式
+* 欄位名稱結尾為 ID 或 _id ，會自動變成 int 格式，並設為 index
 </pre>
 </form>
 </body>
