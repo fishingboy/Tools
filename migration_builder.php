@@ -167,7 +167,7 @@ class Migration_builder
 
     /**
      * 取得 CodeIgniter 的 Migration 語法
-     * @return string [description]
+     * @return string Migration 語法
      */
     public function get_migration()
     {
@@ -442,6 +442,10 @@ class Laravel_Migration_builder extends Migration_builder
             $constraint = "";
             switch ($attrs['type'])
             {
+                case 'tinyint':
+                    $type = 'tinyInteger';
+                    break;
+
                 case 'int':
                     $type = 'integer';
                     break;
@@ -514,7 +518,7 @@ HTML;
      */
     public function _down_template($table_name)
     {
-        return self::append_space("Schema::drop('{$table_name}');", 12);
+        return self::append_space("Schema::drop('{$table_name}');", 8);
     }
 
     /**
