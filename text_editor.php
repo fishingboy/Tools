@@ -60,6 +60,9 @@
         case "md5":
             $value = md5($str);
             break;
+        case "sha1":
+            $value = sha1($str);
+            break;
         case "base64_encode":
             $value = base64_encode($str);
             break;
@@ -195,6 +198,7 @@
     <input class='button'        type='button' id='strip_nl' name='strip_nl' value='換行轉空白' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='sign_match' name='sign_match' value='括號匹配' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='md5' name='md5' value='md5' onclick='btnSubmit(this)'>
+    <input class='button'        type='button' id='sha1' name='sha1' value='sha1' onclick='btnSubmit(this)'>
     <input class='button group1' type='button' id='stripslashes' name='stripslashes' value='stripslashes' onclick='btnSubmit(this)'>
     <input class='button group1' type='button' id='addslashes' name='addslashes' value='addslashes' onclick='btnSubmit(this)'>
     <input class='button group2' type='button' id='urlencode' name='urlencode' value='urlencode' onclick='btnSubmit(this)'>
