@@ -2,8 +2,8 @@
     include ("lib/common.php");
 
     /* 操作 */
-    $dbName = ($_GET['db']) ? $_GET['db'] : "lms";
-    $update = ($_GET['update']) ? $_GET['update'] : "lms";
+    $dbName = ($_GET['db']) ? $_GET['db'] : "zuvio";
+    $update = ($_GET['update']) ? $_GET['update'] : "zuvio";
     if ($update == 1)
     {
         $schema = get_db_info($dbName);
@@ -19,7 +19,7 @@
         public static $list = array
         (
             "poll_result_[0-9]+",
-            "quiz_score_[0-9]+", 
+            "quiz_score_[0-9]+",
             "evaluate_result_[0-9]+",
             "event_result_[0-9]+",
             "settlement_score_[0-9]+",
@@ -37,8 +37,8 @@
             }
             return false;
         }
-    }   
-    
+    }
+
 
     /* 函式區 */
     function get_db_info($dbName)
@@ -97,7 +97,7 @@
             $table = $obj->_table;
             $tbl_object[$table] = $obj;
         }
-        
+
         $field_object = array();
         $objs = mysql_db_query("db_schema", "SELECT * FROM `schema` WHERE db='$dbName' ORDER BY _table ASC, sn ASC");
         while ($obj = mysql_fetch_object($objs))
@@ -244,7 +244,7 @@
             echo "  <div style='font-size:14px; font-weight:bold;'>
                         $table :
                         <span id=table_note_{$obj->id} class=table_note onclick='table_edit($obj->id)'>$note</span>
-                        <img id=table_display_status_{$table} border=0 style='cursor:pointer;' src='/sys/res/icon/ctree_hide.gif' onclick='change_display_table(\"$table\")'>                        
+                        <img id=table_display_status_{$table} border=0 style='cursor:pointer;' src='/sys/res/icon/ctree_hide.gif' onclick='change_display_table(\"$table\")'>
                     </div>";
             echo "  <div id=table_detail_{$table}>";
 
@@ -261,7 +261,7 @@
             {
                 if ($tobj->note) $field_finish_count++;
                 $field_count++;
-                
+
                 $sn++;
                 $tr_class = ($sn % 2) ? "odd" : "even";
                 $note = htmlspecialchars($tobj->note, ENT_QUOTES);
@@ -457,7 +457,7 @@ input {font-size:12px}
                 html += "<input type=button id=fmBtnOK value='儲存' onclick='table_save(" + id + ")'>";
                 html += "<input type=button id=fmBtnOK value='取消' onclick='table_cancel(" + id + "); event.stopPropagation();'> ";
             ctrl.html(html);
-            
+
             $("fmTableNote_" + id).focus();
             if (table[id].indexOf('span>') > 0)
             {
@@ -544,9 +544,9 @@ input {font-size:12px}
     echo "<div class=pageTitle>==  資料字典  ==</div>";
     echo "資料庫： " . create_db_select_html($dbName);
     echo " &nbsp;
-           <a href='javascript:schemaReload()' style='color:#f00'>資料庫異動檢查</a> | 
-           <a href='javascript:extendAll()'>全部展開</a> | 
-           <a href='javascript:hideAll()'>全部收攏</a> | 
+           <a href='javascript:schemaReload()' style='color:#f00'>資料庫異動檢查</a> |
+           <a href='javascript:extendAll()'>全部展開</a> |
+           <a href='javascript:hideAll()'>全部收攏</a> |
            <a href='/module/schema/xls.php' target=_blank>匯出 excel</a> |
            <a href='/module/schema/xls_opt.php' target=_blank>部份匯出 excel</a>
            ";

@@ -2,7 +2,8 @@
     // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
     include_once('lib/register_globals.php');
 
-    $url = $_POST['fmUrl'];
+    $html = '';
+    $url = (isset($_POST['fmUrl'])) ? $_POST['fmUrl'] : '';
     if ($url != "")
     {
         $html = getHtml($url);
