@@ -410,7 +410,7 @@
             $code = "";
             if (is_object($obj)) $code = "(object) ";
             // $code .= "\n";
-            $code .= "{$space_out}[\n";
+            $code .= " [\n";
             $code .= "{$array_body}\n";
             $code .= "{$space_out}]";
 
@@ -573,10 +573,6 @@
             $eval_str = "\$ret[{$key_name}]{$key_struct} = '$value';";
             eval($eval_str);
         }
-
-        // todo : 從這裡開始寫
-        // $func = function ($POST_FIELDS) {
-        // };
 
         return array_to_code($ret);
     }
