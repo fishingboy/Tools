@@ -1,6 +1,6 @@
 <?php
-    include ("common.php");
-    include ("debug_tool.php");
+    include_once("common.php");
+    include_once("debug_tool.php");
     include_once('const.php');
 
     // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
@@ -37,6 +37,9 @@
             break;
         case "urldecode":
             $value = urldecode($str);
+            break;
+        case "url2array":
+            $value = url2array($str);
             break;
         case "stripline":
             $value = ereg_replace("\n", " ", $str);
@@ -203,6 +206,7 @@
     <input class='button group1' type='button' id='addslashes' name='addslashes' value='addslashes' onclick='btnSubmit(this)'>
     <input class='button group2' type='button' id='urlencode' name='urlencode' value='urlencode' onclick='btnSubmit(this)'>
     <input class='button group2' type='button' id='urldecode' name='urldecode' value='urldecode' onclick='btnSubmit(this)'>
+    <input class='button group2' type='button' id='url2array' name='url2array' value='url2array' onclick='btnSubmit(this)'>
     <input class='button group3' type='button' id='json_encode' name='json_encode' value='json_encode' onclick='btnSubmit(this)'>
     <input class='button group3' type='button' id='json_decode' name='json_decode' value='json_decode' onclick='btnSubmit(this)'>
     <input class='button group3' type='button' id='json_to_php_code' name='json_to_php_code' value='json_to_php_code' onclick='btnSubmit(this)'>
@@ -405,10 +409,10 @@
 
             $code = "";
             if (is_object($obj)) $code = "(object) ";
-            $code .= "array\n";
-            $code .= "{$space_out}(\n";
+            // $code .= "\n";
+            $code .= "{$space_out}[\n";
             $code .= "{$array_body}\n";
-            $code .= "{$space_out})";
+            $code .= "{$space_out}]";
 
             return $code;
         }
@@ -543,6 +547,38 @@
 
         $response_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         return $response_code;
+    }
+
+    /**
+     * 網址參數轉成陣列
+     * @param  string  $str  字串
+     * @return string        結果
+     */
+    function url2array($str)
+    {
+        $str = str_replace("\n", "", $str);
+        $str = str_replace("\r", "", $str);
+        $tmp = explode("&", $str);
+
+        $set = [];
+        foreach ($tmp as $line)
+        {
+            $tmp2 = explode("=", $line);
+            $key = urldecode($tmp2[0]);
+            $value = urldecode($tmp2[1]);
+            preg_match("/([a-z\_]+)(.*)/i", $key, $matches);
+            $key_name   = $matches[1];
+            $key_struct = $matches[2];
+
+            $eval_str = "\$ret[{$key_name}]{$key_struct} = '$value';";
+            eval($eval_str);
+        }
+
+        // todo : 從這裡開始寫
+        // $func = function ($POST_FIELDS) {
+        // };
+
+        return array_to_code($ret);
     }
 
 /* End of file text_editor.php */
