@@ -45,6 +45,9 @@
             $value = ereg_replace("\n", " ", $str);
             $value = ereg_replace("\r", "", $value);
             break;
+        case "pretty_json":
+            $value = json_encode(json_decode($str), JSON_PRETTY_PRINT);
+            break;
         case "json_encode":
             $value = addslashes(json_encode($str));
             break;
@@ -121,6 +124,11 @@
             break;
         case "curl_test":
             $value = curl_test($str);
+            break;
+        case "sort":
+            $items = explode("\n", $str);
+            sort($items);
+            $value = implode("\n", $items);
             break;
     }
 ?>
@@ -207,6 +215,7 @@
     <input class='button group2' type='button' id='urlencode' name='urlencode' value='urlencode' onclick='btnSubmit(this)'>
     <input class='button group2' type='button' id='urldecode' name='urldecode' value='urldecode' onclick='btnSubmit(this)'>
     <input class='button group2' type='button' id='url2array' name='url2array' value='url2array' onclick='btnSubmit(this)'>
+    <input class='button group3' type='button' id='pretty_json' name='pretty_json' value='pretty_json' onclick='btnSubmit(this)'>
     <input class='button group3' type='button' id='json_encode' name='json_encode' value='json_encode' onclick='btnSubmit(this)'>
     <input class='button group3' type='button' id='json_decode' name='json_decode' value='json_decode' onclick='btnSubmit(this)'>
     <input class='button group3' type='button' id='json_to_php_code' name='json_to_php_code' value='json_to_php_code' onclick='btnSubmit(this)'>
@@ -225,6 +234,7 @@
     <input class='button'        type='button' id='ascii' name='ascii'     value='ASCII' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='open_browser' name='open_browser'     value='開啟網址' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='curl_test' name='curl_test'     value=' CURL 測試網址' onclick='btnSubmit(this)'>
+    <input class='button'        type='button' id='sort' name='sort'     value='字典順序排序' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='fmCopy' name='fmCopy' value='   ↑   ' onclick='result_to_input()'>
     <textarea id=newStr name=newStr style='width:100%; height:350px' onfocus='this.select()'><? if ($str) echo htmlspecialchars($value, ENT_QUOTES); ?></textarea>
 </form>

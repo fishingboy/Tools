@@ -1,6 +1,6 @@
-<?
-ini_set("display_errors", "Off");
+<?php
 
+ini_set("display_errors", "Off");
 if (!isset($INCLUDE_COMMON_PHP))
 {    
 	$INCLUDE_COMMON_PHP = 1;
@@ -153,4 +153,5 @@ function filelog($msg, $del=0)
     fwrite($fp, date("H:i:s") . ": $msg\n");
     fclose($fp);
 }
+
 ?>

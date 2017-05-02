@@ -322,9 +322,10 @@ class CI_Migration_builder extends Migration_builder
         $code_arr[] = "\$this->dbforge->add_key('{$table['pk']}', TRUE);";
 
         // 索引
-        foreach ( (array) $table['index'] as $field_name)
-        {
-            $code_arr[] = "\$this->dbforge->add_key('{$field_name}', FALSE);";
+        if (isset($table['index'])) {
+            foreach ($table['index'] as $field_name) {
+                $code_arr[] = "\$this->dbforge->add_key('{$field_name}', FALSE);";
+            }
         }
 
         // 建立資料表
