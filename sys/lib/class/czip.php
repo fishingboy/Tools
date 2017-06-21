@@ -1,4 +1,4 @@
-<?
+<?php
 class PHPZip
 {
 	function Zip($dir, $zipfilename)

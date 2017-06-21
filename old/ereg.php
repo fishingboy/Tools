@@ -1,4 +1,4 @@
-<?
+<?php
     // include ('globals_on.php');
 
     $arg1 = ereg_replace("\\\\", "\\", stripslashes($arg1));
@@ -33,7 +33,7 @@
     {
         $("str").value = $("newStr").value;
     }
-    <?
+    <?php
         if ($fmSubmit && $lang == "js")
         {
             switch ($fmFunc)
@@ -61,7 +61,7 @@
 </pre>
 <form id=form1 action='ereg.php' method=POST>
     <input id=action name=action type=hidden>
-    <?
+    <?php
         $func = array("ereg", "ereg_replace");
         foreach ($func as $value)
         {

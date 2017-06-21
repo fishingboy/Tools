@@ -1,4 +1,4 @@
-<?
+<?php
     // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
     include_once('lib/register_globals.php');
 
@@ -29,7 +29,7 @@ function changeDoamin()
 <body>
 <div style='margin:0 auto; width:1000px; text-align:center'>
 <div style='font-weight:bold; font-size:20px; margin-bottom:10px; text-align:center'>====  字詞檔比對  ====</div>
-<?
+<?php
     $domain_path = ($_GET['domain']) ? $_GET['domain'] : "www_lms";
     unset($selected);
     $selected[$domain_path] = "selected";

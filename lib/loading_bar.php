@@ -1,4 +1,4 @@
-<?
+<?php
 ob_flush();
 
 function ob_msg($msg)

@@ -1,4 +1,4 @@
-<?
+<?php
     include ("common.php");
     include ("lib/timer.php");
     // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
@@ -55,7 +55,7 @@
 </form>
 </body>
 </html>
-<?
+<?php
     function runURL($url)
     {
         $curl = curl_init($url);

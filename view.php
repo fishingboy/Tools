@@ -11,7 +11,7 @@
 </head>
 <body>
 <input type=button value='OPEN IN Notepad++'>
-<?
+<?php
 $filename = $_GET['filename'];
 if(!$filename) exit;
 

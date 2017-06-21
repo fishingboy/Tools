@@ -1,4 +1,4 @@
-<?
+<?php
 class RSSParser 
 {
     var $channel_title = "";

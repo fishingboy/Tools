@@ -1,4 +1,4 @@
-<?
+<?php
 include ("../../lib/common.php");
 include ("../../sys/lib/class/xls/Writer.php");
 

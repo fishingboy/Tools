@@ -36,7 +36,7 @@
         </form>
     </div>
     <div class=title2 style='width:500px'>Create Table Index</div>
-    <?
+    <?php
         if ($url)
         {
             $db1 = getDbSchema($url);

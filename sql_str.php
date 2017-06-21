@@ -1,4 +1,4 @@
-<?
+<?php
     include ("common.php");
     // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
     include_once('lib/register_globals.php');
@@ -49,7 +49,7 @@
 <form action='sql_str.php' method=POST>
     資料庫：
     <select id=_DB name=_DB>
-        <?
+        <?php
             $db_list =  mysql_list_dbs();
             $cnt = mysql_num_rows($db_list);
 
@@ -74,7 +74,7 @@
 </form>
 </body>
 </html>
-<?
+<?php
     function queryStr($str, $start, $end, $rnd_start, $rnd_end)
     {
         global $_DB;

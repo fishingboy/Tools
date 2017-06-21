@@ -1,4 +1,4 @@
-<?
+<?php
 include ("xls/Writer.php");
 
 class XLS

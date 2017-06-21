@@ -1,4 +1,4 @@
-<?
+<?php
 	class RSSFeed {	
 		var $m_RSSversion	=	'2.0';
 		var $m_XMLversion	=	'1.0';

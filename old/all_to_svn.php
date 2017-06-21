@@ -1,4 +1,4 @@
-<?
+<?php
     /*  <title>SVN 專案匯入工具(cmd)</title>
         請在 VisualSVN 啟動 cmd 模式
         再下 D:/TMS/php/php all_to_svn.php    

@@ -1,4 +1,4 @@
-<?
+<?php
 class XMLParser 
 {
     var $version;

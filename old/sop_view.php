@@ -1,4 +1,4 @@
-<?
+<?php
     function line_format($line)
     {
         if (ereg('^[ ]*[#]{1}', $line))
@@ -28,7 +28,7 @@
 </head>
 <body style='align:left'>
 <pre>
-<?
+<?php
     $file = "D:/document/ilms_install.txt";
     if (!is_file($file)) exit;
     

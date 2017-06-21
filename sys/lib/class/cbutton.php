@@ -1,4 +1,4 @@
-<?
+<?php
 $btnOutputJS = 1;
 $btnID = 1;
 $btnCallback = $mnuCallback = "_nullCallback";

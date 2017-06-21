@@ -1,4 +1,4 @@
-<?
+<?php
     // function
 
     $type_list = array("'int'", 
@@ -96,7 +96,7 @@
 <pre>
 </pre>
 <div style='border:1px solid #ccc; padding:10px; height:600px; width=100%; overflow-y:auto'>
-<?
+<?php
     $file = "clearparam.txt";
     if (!is_file($file)) exit;
     

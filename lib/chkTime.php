@@ -1,4 +1,4 @@
-<?
+<?php
     //¤ñ¹ï hh:mm
     function chkTime($time)
     {

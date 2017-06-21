@@ -1,4 +1,4 @@
-<?
+<?php
     include ("lib/common.php");
     $dbName1 = ($dbName1) ? $dbName1 : "lms";
     $dbName2 = ($dbName2) ? $dbName2 : "lms2";
@@ -63,7 +63,7 @@
         <input type=hidden name=fmSubmit value='yes'>
         <input type=submit value='比對'>
     </form>
-    <?
+    <?php
     if ($fmSubmit)
     {
         echo "<div style='padding:5px; border:1px solid #ccc'>";

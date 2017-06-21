@@ -1,4 +1,4 @@
-<?
+<?php
 	$DB_SERVER = $SERVER = "localhost";
 	$DB_LOGIN = "root";
 	$DB_PASSWD = "ezlms";

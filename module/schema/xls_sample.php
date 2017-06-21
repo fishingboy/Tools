@@ -1,4 +1,4 @@
-<?
+<?php
 include ("../../sys/lib/class/xls/Writer.php");
 
 $dbName = "lms";

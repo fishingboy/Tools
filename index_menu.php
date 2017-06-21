@@ -1,4 +1,4 @@
-<?
+<?php
     ini_set("display_errors", "Off");
     include_once('const.php');
 ?>
@@ -14,7 +14,7 @@
     </style>
 </head>
 <body>
-<?
+<?php
     $dir = opendir(".");
     $items = array();
     while($file = readdir($dir))
@@ -44,7 +44,7 @@
 ?>
 </body>
 </html>
-<?
+<?php
     function ignore_file($file)
     {
         $ignore_list = array(

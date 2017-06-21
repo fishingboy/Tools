@@ -1,4 +1,4 @@
-<?
+<?php
     include ("lib/common.php");
 
     /* 操作 */
@@ -540,7 +540,7 @@ input {font-size:12px}
 </script>
 </head>
 <body>
-<?
+<?php
     echo "<div class=pageTitle>==  資料字典  ==</div>";
     echo "資料庫： " . create_db_select_html($dbName);
     echo " &nbsp;

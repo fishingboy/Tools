@@ -1,4 +1,4 @@
-<?
+<?php
     // chdir("C:/Program Files/Notepad++");
     // $file = stripslashes($file);
     // echo 'notepad++.exe '. $file . "<br><br>";

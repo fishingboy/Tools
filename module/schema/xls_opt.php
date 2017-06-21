@@ -1,4 +1,4 @@
-<?
+<?php
 include ("../../lib/common.php");
 
 $dbName = "lms";
@@ -49,7 +49,7 @@ input {font-size:12px}
 <div style='font-weight:bold'>請選擇你要匯出的資料表</div>
 <form action="/module/schema/xls.php" method=post>
 <input type=hidden name=dbName value='$dbName'>
-<?
+<?php
 $objs = mysql_db_query("db_schema", "SELECT * FROM tbl WHERE db='$dbName' ORDER BY _table");
 $i = 0;
 while ($obj = mysql_fetch_object($objs))

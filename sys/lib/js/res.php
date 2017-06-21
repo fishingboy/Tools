@@ -1,4 +1,4 @@
-<?
+<?php
     $NO_RETURN_URL = 1;
     include ("../../../common.php");
 

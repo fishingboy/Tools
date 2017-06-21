@@ -1,4 +1,4 @@
-<?
+<?php
     include ("lib/common.php");
     // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
     include_once('lib/register_globals.php');
@@ -50,7 +50,7 @@
         <input type=submit value='搜尋'>
     </form>
     <div style='border:1px solid #ccc'></div>
-<?
+<?php
     /*
             搜尋資料庫內所有資料表、資料欄位
     */

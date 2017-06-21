@@ -1,4 +1,4 @@
-<?
+<?php
     // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
     include_once('lib/register_globals.php');
 
@@ -65,7 +65,7 @@ HTML;
     {
         $("str").value = $("newStr").value;
     }
-    <?
+    <?php
         if ($fmSubmit && $lang == "js")
         {
             switch ($fmFunc)
@@ -93,7 +93,7 @@ HTML;
 </pre>
 <form id=form1 action='preg.php' method=POST>
     <input id=action name=action type=hidden>
-    <?
+    <?php
         $func = array("preg_match", "preg_replace");
         foreach ($func as $value)
         {

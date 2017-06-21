@@ -1,4 +1,4 @@
-<?
+<?php
     include ("common.php");
     // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
     include_once('lib/register_globals.php');
@@ -23,7 +23,7 @@
 </script>
 </head>
 <body topmargin=0px leftmargin=0px rightmargin=0px bottommargin=1px scroll=yes>
-<?
+<?php
 	if ($fmAction == "yes")  // write to DB
 	{
 		$handle = fopen ("tmp/$csv_name", "r");
@@ -193,14 +193,14 @@
             <textarea style='width:90%; height:400px'><?= $html ?></textarea><br>
             <input type=submit value='確定'>
         </form>
-<?
+<?php
 		exit;
 	}
 ?>
 
 
 
-<?
+<?php
     /***************  SETP.1  ***************/
     $db_list = mysql_list_dbs();
     $i = 0; $db_opt = $db_opt2 = "";

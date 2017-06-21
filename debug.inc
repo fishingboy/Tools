@@ -1,4 +1,4 @@
-<?
+<?php
     $info = isset($info) ? $info : 1; 
      
     // if ($NO_RETURN_URL && $info) return;

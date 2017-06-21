@@ -1,4 +1,4 @@
-<?
+<?php
     // <title>暴力跑遍整個網站(檢查錯誤)</title>
     $G_URL_ARR = array();
     $G_URL_ARR_CHK_NUM = array();

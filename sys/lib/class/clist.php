@@ -1,4 +1,4 @@
-<?
+<?php
 $lstOutputJS = 1;
 class CList
 {

@@ -1,4 +1,4 @@
-<?
+<?php
     $filter = (isset($_GET['filter'])) ? $_GET['filter'] : array(0,1,1,0);
     
     $FILTER_ARR = array("Undefined variable", "Parse error", "Fatal error", "Undefined index");
@@ -141,7 +141,7 @@
 , <input type=text id=fmReloadTime value='<?= (($_GET['sec']) ? $_GET['sec'] : 3)?>' size=2 onchange='enableAutoReload()'>秒
 </form>
 <div style='border:1px solid #ccc; padding:10px; height:600px; width=100%; overflow-y:auto'>
-<?
+<?php
     $file = "c:/xms/phperr.log";
     if (!is_file($file)) exit;
     

@@ -1,4 +1,4 @@
-<?
+<?php
     class timer
     {
         var $StartTime = 0;

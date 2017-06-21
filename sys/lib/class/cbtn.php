@@ -1,4 +1,4 @@
-<?
+<?php
     function createBtn($cb, $value, $id=0)
     {
         return createBtnHtml($cb, $value, $id);

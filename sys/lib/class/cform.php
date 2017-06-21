@@ -1,4 +1,4 @@
-<?
+<?php
 $frmOutputJS = 1;
 $frmCheckJs = '';
 $focusInput = '';

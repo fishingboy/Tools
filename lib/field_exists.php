@@ -1,4 +1,4 @@
-<?
+<?php
     function field_exists($table, $field)
     {
         global $DB;

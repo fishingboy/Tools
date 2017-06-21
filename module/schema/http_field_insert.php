@@ -1,4 +1,4 @@
-<?
+<?php
     include "../../lib/common.php";
 
     // $id   = $id;

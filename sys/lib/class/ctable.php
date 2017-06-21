@@ -1,4 +1,4 @@
-<?
+<?php
     function createTable($tbl, $emptyTable=0)
     {
         global $msgNoRec;
