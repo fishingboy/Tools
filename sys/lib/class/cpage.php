@@ -1,4 +1,4 @@
-<?    
+<?php    
     function createPage($curr, $total, $url, $psize=0, $prev_msg='Prev', $next_msg='Next', $pages=10)
     {
         $h = "<span class=pageBox>";

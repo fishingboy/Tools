@@ -1,4 +1,4 @@
-<?    
+<?php    
     function createTab($tab)
     {
         $cls[$tab['curr']] = "curr";

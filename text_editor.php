@@ -243,7 +243,7 @@
     <input class='button'        type='button' id='curl_test' name='curl_test'     value=' CURL 測試網址' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='sort' name='sort'     value='字典順序排序' onclick='btnSubmit(this)'>
     <input class='button'        type='button' id='fmCopy' name='fmCopy' value='   ↑   ' onclick='result_to_input()'>
-    <textarea id=newStr name=newStr style='width:100%; height:350px' onfocus='this.select()'><? if ($str) echo htmlspecialchars($value, ENT_QUOTES); ?></textarea>
+    <textarea id=newStr name=newStr style='width:100%; height:350px' onfocus='this.select()'><?php if ($str) echo htmlspecialchars($value, ENT_QUOTES); ?></textarea>
 </form>
 </div>
 </body>

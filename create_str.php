@@ -22,7 +22,7 @@
     開始序號：<input type=text id=fmN name=fmStart value='<?= $start ?>'>
     結束序號：<input type=text id=fmN name=fmEnd value='<?= $end ?>'>
     <input type=submit value='產生'>
-    <textarea id=newStr name=newStr style='width:100%; height:400px' onfocus='this.select()'><? if ($str) echo stripslashes(createStr($str, $fmStart, $fmEnd)); ?></textarea>
+    <textarea id=newStr name=newStr style='width:100%; height:400px' onfocus='this.select()'><?php if ($str) echo stripslashes(createStr($str, $fmStart, $fmEnd)); ?></textarea>
 </form>
 </body>
 </html>
