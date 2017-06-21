@@ -118,6 +118,7 @@ class Migration_builder
                     $field_key        = $field['key'];
                     $field_fk         = $field['fk'];
                     $field_unique     = $field['unique'];
+                    $field_null       = $field['null'];
 
                     // 建立結構
                     $this->_schema[$curr_table]['fields'][$field_name]               = $this->FIELD_STRUCT;
@@ -133,6 +134,11 @@ class Migration_builder
                     {
                         $this->_schema[$curr_table]['fields'][$field_name]['comment']    = $field_comment;
                     }
+                    // null
+                    // if ($field_null)
+                    // {
+                        $this->_schema[$curr_table]['fields'][$field_name]['null']    = $field_null;
+                    // }
 
                     // 第一個欄位就是主 key
                     if ($field_count == 1)
@@ -243,33 +249,48 @@ class Migration_builder
         // 註解
         $comment = isset($tmp[1]) ? trim($tmp[1]) : '';
 
+        // echo "<pre>field_str = " . print_r($field_str, TRUE). "</pre>";
+        // echo "<pre>name = " . print_r($name, TRUE). "</pre>";
+
+        // 唯一
+        $null = (preg_match("/\[null\]/", $name)) ? true : false;
+
         // TYPE (取得括號內的字串)
-        if (preg_match('/([a-z0-9\_]+) \((.*)\)/i', $name, $matches))
+        if (preg_match('/([a-z0-9\_]+) \((.*)\)/i', $field_str, $matches))
         {
             // 拆解 type
-            $type_str = $matches[1];
+            $type_str = $matches[2];
+            // echo "<pre>matches = " . print_r($matches, TRUE). "</pre>";
+            // echo "<pre>type_str = " . print_r($type_str, TRUE). "</pre>";
             $tmp2 = explode(',', $type_str);
             $type = $tmp2[0];
             $constraint = (isset($tmp2[1])) ? trim($tmp2[1]) : '';
+            if ($type == 'enum') {
+                $constraint = explode('/', $constraint);
+            }
+
+            if ($type == 'varchar' && ! $constraint) {
+                $constraint = 255;
+            }
         }
-        else if (preg_match('/_time$|_at$/', $field_str))
+        else if (preg_match('/_time$|_at$/', $name))
         {
             $type = 'datetime';
         }
-        else if (preg_match('/ID$|id$/', $field_str))
+        else if (in_array($name, ['created_at', 'updated_at']))
+        {
+            $type = 'datetime';
+        }
+        else if (preg_match('/ID$|id$/', $name))
         {
             $type = 'int';
             $key = 'index';
+            $null = false;
         }
         else
         {
-            $type = 'nvarchar';
-        }
-
-        // varchar 強轉成 nvarcahr
-        if ($type == 'varchar')
-        {
-            $type = 'nvarchar';
+            $type = 'varchar';
+            $constraint = 255;
         }
 
         return [
@@ -279,7 +300,8 @@ class Migration_builder
             'comment'    => $comment,
             'key'        => $key,
             'fk'         => $fk,
-            'unique'     => $unique
+            'unique'     => $unique,
+            'null'       => $null,
         ];
     }
 

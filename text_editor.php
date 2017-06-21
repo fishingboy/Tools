@@ -5,6 +5,7 @@
 
     // TODO: 先使用這隻解完 register_globals 的問題，有空再整個重寫
     include_once('lib/register_globals.php');
+    include_once ("lib/firephp_helper.php");
 
     $start = ($start) ? intval($start) : 1;
     $fmReplace = (isSet($fmReplace)) ? $fmReplace : 1;
@@ -62,6 +63,11 @@
             $json_obj = json_decode($str);
             fb_log($json_obj);
             $value = array_to_code($json_obj);
+            break;
+        case "simplexml_load_string":
+            $xml_obj = simplexml_load_string($str);
+            fb_log($xml_obj);
+            $value = print_r($xml_obj, true);
             break;
         case "md5":
             $value = md5($str);
@@ -219,6 +225,7 @@
     <input class='button group3' type='button' id='json_encode' name='json_encode' value='json_encode' onclick='btnSubmit(this)'>
     <input class='button group3' type='button' id='json_decode' name='json_decode' value='json_decode' onclick='btnSubmit(this)'>
     <input class='button group3' type='button' id='json_to_php_code' name='json_to_php_code' value='json_to_php_code' onclick='btnSubmit(this)'>
+    <input class='button group3' type='button' id='simplexml_load_string' name='simplexml_load_string' value='simplexml_load_string' onclick='btnSubmit(this)'>
     <input class='button group4' type='button' id='base64_encode' name='base64_encode' value='base64_encode' onclick='btnSubmit(this)'>
     <input class='button group4' type='button' id='base64_decode' name='base64_decode' value='base64_decode' onclick='btnSubmit(this)'>
     <input class='button group5' type='button' id='rawurlencode' name='rawurlencode' value='rawurlencode' onclick='btnSubmit(this)'>
