@@ -280,7 +280,6 @@ class Migration_builder
                 $constraint = explode('/', $constraint);
                 if ($this->_framework == "CI") {
                     if ($this->_framework_version == 2) {
-                        echo __METHOD__ . "::" . __LINE__ . "<br>\n";
                         $constraint = "'" . implode("','", $constraint) . "'";
                     }
                 }
