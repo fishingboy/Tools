@@ -23,7 +23,7 @@ class Migration_builder
      */
     protected $FIELD_STRUCT = [
         'type'       => 'varchar',
-        'constraint' => '100',
+        'constraint' => null,
         'null'       => TRUE,
     ];
 
