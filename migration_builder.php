@@ -23,7 +23,6 @@ class Migration_builder
      */
     protected $FIELD_STRUCT = [
         'type'       => 'varchar',
-        'constraint' => null,
         'null'       => TRUE,
     ];
 
@@ -40,6 +39,12 @@ class Migration_builder
     protected $_framework;
 
     /**
+     * framework 版本
+     * @var string
+     */
+    protected $_framework_version;
+
+    /**
      * 資料庫 (mysql, mssql, oracle)
      * @var string
      */
@@ -54,11 +59,15 @@ class Migration_builder
     /**
      * 建構子
      * @param string $text 從 xmind 來的原始 schema
+     * @param string $framework
+     * @param $framework_version
+     * @param string $db
      */
-    public function __construct($text, $framework = 'CI', $db = 'mssql')
+    public function __construct($text, $framework = 'CI', $framework_version, $db = 'mssql')
     {
         $this->_text      = $text;
         $this->_framework = $framework;
+        $this->_framework_version = $framework_version;
         $this->_db        = $db;
         $this->_parse();
     }
@@ -269,6 +278,12 @@ class Migration_builder
             $constraint = (isset($tmp2[1])) ? trim($tmp2[1]) : '';
             if ($type == 'enum') {
                 $constraint = explode('/', $constraint);
+                if ($this->_framework == "CI") {
+                    if ($this->_framework_version == 2) {
+                        echo __METHOD__ . "::" . __LINE__ . "<br>\n";
+                        $constraint = "'" . implode("','", $constraint) . "'";
+                    }
+                }
             }
 
             // echo "$name.type => $type <br>";
@@ -360,6 +375,10 @@ class CI_Migration_builder extends Migration_builder
     public function _up_template($table_name, $table)
     {
         $code_arr = [];
+
+        if ( ! isset($table['fields']) || ! $table['fields']) {
+            return "";
+        }
 
         // 欄位 schema
         $fields = var_export($table['fields'], TRUE);
@@ -529,9 +548,7 @@ class Laravel_Migration_builder extends Migration_builder
 
                 case 'enum':
                     $type = 'enum';
-                    // echo "<pre>attrs = " . print_r($attrs, TRUE). "</pre>";
-                    $tmp = explode('/', $attrs['constraint']);
-                    $constraint = ', ' . var_export($tmp, TRUE);
+                    $constraint = ', ' . var_export($attrs['constraint'], TRUE);
                     break;
 
                 case 'varchar':
@@ -667,7 +684,7 @@ HTML;
 
 
 $schema = "";
-$framework = "Laravel";
+$fm_framework = "CI3";
 $output = [
     'up' => '',
     'down' => '',
@@ -676,9 +693,24 @@ $output = [
 ];
 if (isset($_POST['fm_action']))
 {
-    $schema    = $_POST['fm_schema'];
-    $framework = $_POST['fm_framework'];
-    $db        = $_POST['fm_db'];
+    $schema       = $_POST['fm_schema'];
+    $framework    = $fm_framework = $_POST['fm_framework'];
+    $db           = $_POST['fm_db'];
+
+    switch ($fm_framework) {
+        case "CI2":
+            $framework = "CI";
+            $framework_version = 2;
+            break;
+        case "CI3":
+            $framework = "CI";
+            $framework_version = 3;
+            break;
+        case "Laravel":
+            $framework = "laravel";
+            $framework_version = 5;
+            break;
+    }
 
     switch ($_POST['fm_action'])
     {
@@ -689,7 +721,7 @@ if (isset($_POST['fm_action']))
         case 'build':
         default:
             $builder_name =  $framework . '_Migration_builder';
-            $builder = new $builder_name($schema, $framework, $db);
+            $builder = new $builder_name($schema, $framework, $framework_version, $db);
             $output  = $builder->get_migration();
             break;
     }
@@ -730,8 +762,9 @@ function go(action)
     </div>
     <div>
         FrameWork:
-        <input type='radio' name='fm_framework' value='CI'      <?= ($framework == 'CI') ? 'checked' : '' ?> > Codeigniter
-        <input type='radio' name='fm_framework' value='Laravel' <?= ($framework == 'Laravel') ? 'checked' : '' ?>> Laravel,
+        <input type='radio' name='fm_framework' value='CI2'      <?= ($fm_framework == 'CI2') ? 'checked' : '' ?> > Codeigniter2
+        <input type='radio' name='fm_framework' value='CI3'      <?= ($fm_framework == 'CI3') ? 'checked' : '' ?> > Codeigniter3
+        <input type='radio' name='fm_framework' value='Laravel' <?= ($fm_framework == 'Laravel') ? 'checked' : '' ?>> Laravel,
     </div>
     <div>
         資料庫(只影響 Foreign Key):
