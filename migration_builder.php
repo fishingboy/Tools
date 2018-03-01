@@ -114,7 +114,7 @@ class Migration_builder
                     $field_name       = $field['name'];
                     $field_comment    = $field['comment'];
                     $field_type       = $field['type'];
-                    $field_constraint = $field['constraint'];
+                    $field_constraint = isset($field['constraint']) ? $field['constraint'] : null;
                     $field_key        = $field['key'];
                     $field_fk         = $field['fk'];
                     $field_unique     = $field['unique'];
@@ -123,7 +123,9 @@ class Migration_builder
                     // 建立結構
                     $this->_schema[$curr_table]['fields'][$field_name]               = $this->FIELD_STRUCT;
                     $this->_schema[$curr_table]['fields'][$field_name]['type']       = $field_type;
-                    $this->_schema[$curr_table]['fields'][$field_name]['constraint'] = $field_constraint;
+                    if ($field_constraint) {
+                        $this->_schema[$curr_table]['fields'][$field_name]['constraint'] = $field_constraint;
+                    }
                     // 唯一值
                     if ($field_unique)
                     {
@@ -256,7 +258,7 @@ class Migration_builder
         $null = (preg_match("/\[null\]/", $name)) ? true : false;
 
         // TYPE (取得括號內的字串)
-        if (preg_match('/([a-z0-9\_]+) \((.*)\)/i', $field_str, $matches))
+        if (preg_match('/([a-z0-9\_]+)[ ]+\((.*)\)/i', $field_str, $matches))
         {
             // 拆解 type
             $type_str = $matches[2];
@@ -268,6 +270,8 @@ class Migration_builder
             if ($type == 'enum') {
                 $constraint = explode('/', $constraint);
             }
+
+            // echo "$name.type => $type <br>";
 
             if ($type == 'varchar' && ! $constraint) {
                 $constraint = 255;
@@ -293,16 +297,37 @@ class Migration_builder
             $constraint = 255;
         }
 
-        return [
-            'name'       => $name,
-            'type'       => $type,
-            'constraint' => $constraint,
-            'comment'    => $comment,
-            'key'        => $key,
-            'fk'         => $fk,
-            'unique'     => $unique,
-            'null'       => $null,
-        ];
+
+        switch ($type) {
+            case 'datetime':
+            case 'int':
+                return [
+                    'name'       => $name,
+                    'type'       => $type,
+//                    'constraint' => $constraint,
+                    'comment'    => $comment,
+                    'key'        => $key,
+                    'fk'         => $fk,
+                    'unique'     => $unique,
+                    'null'       => $null,
+                ];
+                break;
+
+            case 'varchar':
+            default:
+                return [
+                    'name'       => $name,
+                    'type'       => $type,
+                    'constraint' => $constraint,
+                    'comment'    => $comment,
+                    'key'        => $key,
+                    'fk'         => $fk,
+                    'unique'     => $unique,
+                    'null'       => $null,
+                ];
+                break;
+        }
+
     }
 
     /**
