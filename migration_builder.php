@@ -128,6 +128,7 @@ class Migration_builder
                     $field_fk         = $field['fk'];
                     $field_unique     = $field['unique'];
                     $field_null       = $field['null'];
+                    $field_default    = $field['default'];
 
                     // 建立結構
                     $this->_schema[$curr_table]['fields'][$field_name]               = $this->FIELD_STRUCT;
@@ -144,6 +145,11 @@ class Migration_builder
                     if ($field_comment)
                     {
                         $this->_schema[$curr_table]['fields'][$field_name]['comment']    = $field_comment;
+                    }
+                    // 預設值
+                    if ($field_default !== "")
+                    {
+                        $this->_schema[$curr_table]['fields'][$field_name]['default']    = $field_default;
                     }
                     // null
                     // if ($field_null)
@@ -228,7 +234,7 @@ class Migration_builder
      */
     protected function _parse_field($str)
     {
-        $fk = $key = $comment = $constraint = "";
+        $fk = $key = $comment = $constraint = $default = "";
 
         // - 切開
         $tmp = explode('-', $str);
@@ -255,6 +261,12 @@ class Migration_builder
 
             // 一併建立索引
             $key = TRUE;
+        }
+
+        // 預設值
+        if (preg_match("/\[default:(.*)\]/", $field_str, $matches))
+        {
+            $default = $matches[1];
         }
 
         // 註解
@@ -324,6 +336,7 @@ class Migration_builder
                     'fk'         => $fk,
                     'unique'     => $unique,
                     'null'       => $null,
+                    'default'    => $default,
                 ];
                 break;
 
@@ -338,6 +351,7 @@ class Migration_builder
                     'fk'         => $fk,
                     'unique'     => $unique,
                     'null'       => $null,
+                    'default'    => $default,
                 ];
                 break;
         }
