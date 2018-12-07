@@ -47,7 +47,7 @@
             $value = ereg_replace("\r", "", $value);
             break;
         case "pretty_json":
-            $value = json_encode(json_decode($str), JSON_PRETTY_PRINT);
+            $value = json_encode(json_decode($str), JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE);
             break;
         case "json_encode":
             $value = addslashes(json_encode($str));
